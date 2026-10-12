@@ -2,11 +2,13 @@
 
 项目使用 HBuilderX 云打包，GitHub Release 托管 APK 和更新描述。源码仓库 `Hwayin/mhxy-jsq` 已按要求公开；客户端不包含 GitHub 令牌。
 
-当前源码版本 **0.8.1 / 801**，保留快速录入，并修复 Android 更新校验重复读取 APK 文件头的问题。手机上的旧 0.7.1 / 0.8.0 若提示「安装包大小不匹配」，需要通过浏览器下载 0.8.1 APK，直接覆盖安装一次；旧校验器无法通过修改服务器的元数据修复。不要卸载，先导出账本备份，覆盖安装后核对版本与金额，再使用应用内更新升级后续版本。
+当前版本 **0.8.1 / 801** 已通过自动脚本云打包并发布为 [Latest](https://github.com/Hwayin/mhxy-jsq/releases/tag/v0.8.1)，保留快速录入，并修复 Android 更新校验重复读取 APK 文件头的问题。手机上的旧 0.7.1 / 0.8.0 若提示「安装包大小不匹配」，需要通过浏览器 [下载 0.8.1 APK](https://github.com/Hwayin/mhxy-jsq/releases/download/v0.8.1/mhxy-ledger-0.8.1.apk)，直接覆盖安装一次；旧校验器无法通过修改服务器的元数据修复。不要卸载，先导出账本备份，覆盖安装后核对版本与金额，再使用应用内更新升级后续版本。
+
+0.8.1 APK 大小 **38,831,381 字节**，SHA-256 `7d3987228bb2f0baefa299cfb68228ab0118f0d395df57d8e8a2889485ad1e7f`，原包名和云端证书核验通过。Release 对应源码 `c4e18b1e7cb34dd29bb2a39c747cf6fe25a6a3e1`，匿名元数据与完整下载验证通过。[同一修复包的云端下载链接](https://app.liuyingyong.cn/build/download/8d5e4410-c5fb-11f1-8f02-3fc7c49167b1) 可作备用。手机覆盖安装及后续原生校验仍待用户确认。
 
 已安装 0.7.0 的真实包名是 `uni.app.UNIA9783A2`、签名为 DCloud 云端证书，与最初计划的配置不同。修复版沿用实际包名与原云端证书，账本留在原应用数据目录。0.7.0 可直接手动覆盖安装最新修复版，无须中转 0.7.1。
 
-本轮 [v0.8.0 Release](https://github.com/Hwayin/mhxy-jsq/releases/tag/v0.8.0) 已正式发布为 Latest，包含 APK 与 `update.json` 两个附件。匿名下载地址已实际验证，APK 大小 **38,830,990 字节**，SHA-256 为 `8eabda23a22ff01d1d47f3546196271656ceca70f4e69b9b74b286065f2218e0`；Release 对应源码提交 `6464e93fe904eeafaf65d497f7bbbd69cf067a6b`。
+先前 [v0.8.0 Release](https://github.com/Hwayin/mhxy-jsq/releases/tag/v0.8.0) 已正式发布，包含 APK 与 `update.json` 两个附件，目前 Latest 已更新为 0.8.1。0.8.0 匿名下载地址已实际验证，APK 大小 **38,830,990 字节**，SHA-256 为 `8eabda23a22ff01d1d47f3546196271656ceca70f4e69b9b74b286065f2218e0`；Release 对应源码提交 `6464e93fe904eeafaf65d497f7bbbd69cf067a6b`。
 
 此前用户反馈已升级 0.8.0、原账本金额一致且可见「快速录入」。随后提供的新截图显示 0.7.1 在下载后被大小校验拦截。按 DCloud 官方 Android 源码行为复现后，确认旧校验代码省略 `position` 会重复读取文件开头；因此此前反馈不作为所有设备均完成原生校验的证据，修复版覆盖安装和后续在线升级仍须手机验收。
 
@@ -117,7 +119,7 @@ gh release create v0.7.0 "unpackage/update-release/v0.7.0/mhxy-ledger-0.7.0.apk"
 
 同时递增 `manifest.json` 的 `versionName` 与 `versionCode`，同步 `package.json` 版本；例如 0.8.0 / 800。提交推送代码后重新云打包，运行生成脚本，再创建 `v0.8.0` Release 并上传对应两个附件。每个版本使用独立 APK 文件名，不替换已经发布过的安装包。只有正式发布 Latest 后手机才会看到新版；GitHub 源码 push 本身不会生成或发布 APK。
 
-0.8.0 已发布，下次例如使用 **0.9.0 / 900**、`v0.9.0` 与 `mhxy-ledger-0.9.0.apk`。流程仍是「改版本并测试/推送 → 云打包 → 生成两个附件 → GitHub Release 设 Latest」。0.7.1 修复只需安装一次，以后保留相同 AppID、实际包名及云端证书即可直接在 App 中升级。
+0.8.1 已发布，下次例如使用 **0.9.0 / 900**、`v0.9.0` 与 `mhxy-ledger-0.9.0.apk`。流程仍是「改版本并测试/推送 → 云打包 → 生成两个附件 → GitHub Release 设 Latest」。旧校验器报错的用户需手动覆盖安装 0.8.1 一次，以后保留相同 AppID、实际包名及云端证书即可在 App 中升级。
 
 更新描述结构（实际大小和摘要由脚本生成）：
 

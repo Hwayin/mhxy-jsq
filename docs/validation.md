@@ -193,4 +193,8 @@ HBuilderX 5.26 Web 与 Android 前端编译通过；生成的 Android manifest �
 
 90 项测试通过，新增覆盖固定起点、-1 EOF、整块边界、末尾部分块、短读取、真实大小异常与异常读取计数。修复校验器直接读取真实 0.8.0 APK，与线上 SHA-256 对照通过。HBuilderX 5.26 Web / Android 前端编译成功，日志无错误或警告；隔离 Edge 更新页回归通过（404、新版本、同版本、无效元数据、浏览器限制、390/320px 与账本保留）。上述为标准运行时和 Android 行为模拟，未连接真机，手机中的新校验器仍待安装后验证。版本升为 0.8.1 / 801，使用原包名与云端证书；旧校验器无法靠服务器修改修复，需浏览器下载后覆盖安装一次，无须卸载。
 
-依据：[DCloud 官方 Android ReadFileUtil 实现](https://github.com/dcloudio/uni-api/blob/alpha/uni_modules/uni-fileSystemManager/utssdk/app-android/ReadFileUtil.uts)。
+进一步只读分析真实 0.7.1 APK：`ReadFileUtil.readBufferByCondition` 在 position 为空时置 0，再调用 `FileChannel.position`，与官方源码相同；APK 同时包含可用的 `fstatSync` 与 Stats.size。诊断输出仅写入忽略目录，不修改原 APK、源码或账本。
+
+首次实际运行 `scripts/pack-android.ps1 -Submit -Publish` 全流程成功：源码 `c4e18b1e7cb34dd29bb2a39c747cf6fe25a6a3e1`、云任务 `8d5e4410-c5fb-11f1-8f02-3fc7c49167b1`，排队后完成真实 0.8.1 / 801 正式 APK。原包名及云证书校验通过；上传两项附件、服务端大小/摘要核对、正式发布 Latest、匿名元数据与完整 APK 下载校验全部成功。[v0.8.1 Release](https://github.com/Hwayin/mhxy-jsq/releases/tag/v0.8.1) 不是草稿或 Pre-release。APK 为 38,831,381 字节，SHA-256 `7d3987228bb2f0baefa299cfb68228ab0118f0d395df57d8e8a2889485ad1e7f`。本轮未连接手机，修复版覆盖安装、账本金额与后续原生校验仍待用户验收。
+
+依据：[DCloud 官方 Android ReadFileUtil 实现（固定提交）](https://github.com/dcloudio/uni-api/blob/3e1d6c1b63b2ff6616a4ecf273d72dde33885dec/uni_modules/uni-fileSystemManager/utssdk/app-android/ReadFileUtil.uts)。
