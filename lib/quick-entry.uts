@@ -3,6 +3,16 @@ import type { Asset, Ledger, AssetAttributes } from './ledger.uts'
 import { EQUIPMENT_ITEMS } from './item-catalog.uts'
 
 export type QuickForm = { category: string, subtype: string, position: string, level: string, amount: string, name: string, included: boolean, date: string, note: string, itemId: string }
+export type QuickViewState = { form: QuickForm, equipmentSubtype: string }
+export function quickViewState(form: QuickForm, previousEquipmentSubtype = 'gear'): QuickViewState {
+  return { form, equipmentSubtype: form.category === 'equipment' ? form.subtype : previousEquipmentSubtype }
+}
+export function changeQuickCategory(data: Ledger, roleId: string, form: QuickForm, category: string): QuickForm {
+  if (!CATEGORIES.some(c => c.key === category)) throw new Error('请选择有效的分类')
+  const defaults = emptyQuickForm(category)
+  // 返回完整表单，由页面一次替换，避免原生响应式渲染读到分类/类型不一致的中间状态。
+  return { category, subtype: defaults.subtype, position: category === 'equipment' ? nextQuickPosition(data,roleId,defaults.subtype) : '', level: form.level, amount: form.amount, name: form.name, included: false, date: form.date, note: form.note, itemId: '' }
+}
 export function emptyQuickForm(category = 'equipment'): QuickForm {
   return { category, subtype: category === 'equipment' ? 'gear' : category === 'pet' ? 'pet' : 'misc', position: '', level: '', amount: '', name: '', included: false, date: '', note: '', itemId: '' }
 }

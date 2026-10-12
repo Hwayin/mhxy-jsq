@@ -2,8 +2,8 @@
   "name": "梦幻多开账本",
   "appid": "__UNI__A9783A2",
   "description": "账号、角色、装备与召唤兽的本地成本账本",
-  "versionName": "0.8.1",
-  "versionCode": "801",
+  "versionName": "0.8.2",
+  "versionCode": "802",
   "vueVersion": "3",
   "uniStatistics": {
     "enable": false

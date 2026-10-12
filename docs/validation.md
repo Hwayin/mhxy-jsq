@@ -198,3 +198,11 @@ HBuilderX 5.26 Web 与 Android 前端编译通过；生成的 Android manifest �
 首次实际运行 `scripts/pack-android.ps1 -Submit -Publish` 全流程成功：源码 `c4e18b1e7cb34dd29bb2a39c747cf6fe25a6a3e1`、云任务 `8d5e4410-c5fb-11f1-8f02-3fc7c49167b1`，排队后完成真实 0.8.1 / 801 正式 APK。原包名及云证书校验通过；上传两项附件、服务端大小/摘要核对、正式发布 Latest、匿名元数据与完整 APK 下载校验全部成功。[v0.8.1 Release](https://github.com/Hwayin/mhxy-jsq/releases/tag/v0.8.1) 不是草稿或 Pre-release。APK 为 38,831,381 字节，SHA-256 `7d3987228bb2f0baefa299cfb68228ab0118f0d395df57d8e8a2889485ad1e7f`。本轮未连接手机，修复版覆盖安装、账本金额与后续原生校验仍待用户验收。
 
 依据：[DCloud 官方 Android ReadFileUtil 实现（固定提交）](https://github.com/dcloudio/uni-api/blob/3e1d6c1b63b2ff6616a4ecf273d72dde33885dec/uni_modules/uni-fileSystemManager/utssdk/app-android/ReadFileUtil.uts)。
+
+## 快速录入分类切换原生崩溃修复候选 v0.8.2（2026-10-12）
+
+用户报告 0.8.1 点击快速录入顶部「召唤兽」后回到成本总览。通过用户同意连接的 Xiaomi 13 读取应用专属日志并由用户复现：旧进程 23134 在 14:52:16 退出，系统退出记录 reason=SIGNALED、status=11；SDK 的 C DOM 线程记录原生崩溃，新进程 27164 随后启动 dashboard。未发现普通导航或 JS 异常的证据；未读取其他应用数据，原始日志与 UI 检查文件仅保存在忽略的诊断目录，不公开提交。
+
+兼容调整将装备分支、等级/名称输入和类型列表改为稳定组件结构，分类切换仅改变显示；非装备分类保留装备展示类型及部位列表，避免切换时分支卸载与空列表刷新同时发生。表单与装备展示状态通过单个 ref 一次替换，避免 Object.assign 逐字段触发不一致的渲染状态。输入与快速草稿保留，分类切换不写账本。
+
+92 项测试通过，新增所有分类切换组合、输入保留、原数据不变与装备列表连续性。HBuilderX 5.26 Web/Android 编译通过，无错误或警告。隔离 Edge 回归覆盖首次进入、8 轮装备/召唤兽/其他切换、金额保留、召唤兽装备连续录入、草稿恢复、编辑和小屏。以上不能代替真机验收；版本升为 0.8.2 / 802，候选 APK 的手机切换验证和正式发布结果随后记录。

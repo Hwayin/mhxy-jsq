@@ -9,6 +9,32 @@ source=source.replace("'./ledger.uts'",JSON.stringify(ledgerModuleUrl)).replace(
 const quick=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'))
 const form=extra=>({...quick.emptyQuickForm(),position:'头部',level:'100',amount:'128.90',...extra})
 
+test('分类切换返回完整有效的表单，保留未保存输入且不修改原表单或账本',()=>{
+  const data=ledger.demoLedger(), before=JSON.stringify(data)
+  for(const from of ledger.CATEGORIES) for(const to of ledger.CATEGORIES) {
+    const current={...quick.emptyQuickForm(from.key),amount:'123.45',name:'未保存名称',level:'100',date:'2026-10-12',note:'未保存备注',included:true,itemId:'1550'}
+    const snapshot=JSON.stringify(current), next=quick.changeQuickCategory(data,'demo-role-0',current,to.key)
+    assert.equal(next.category,to.key)
+    assert.ok(ledger.SUBTYPES.some(t=>t.category===next.category&&t.key===next.subtype))
+    for(const k of ['amount','name','level','date','note']) assert.equal(next[k],current[k])
+    assert.equal(next.itemId,'');assert.equal(next.included,false)
+    assert.equal(next.position,to.key==='equipment'?'头部':'')
+    assert.equal(JSON.stringify(current),snapshot)
+  }
+  assert.equal(JSON.stringify(data),before)
+  assert.throws(()=>quick.changeQuickCategory(data,'demo-role-0',form({}),'invalid'),/有效的分类/)
+})
+test('切到召唤兽及其他投入时保留装备展示类型，部位列表不会变成空列表',()=>{
+  const data=ledger.demoLedger(), gear=quick.quickViewState(form({subtype:'ornament',position:'戒指'}))
+  const pet=quick.quickViewState(quick.changeQuickCategory(data,'demo-role-0',gear.form,'pet'),gear.equipmentSubtype)
+  assert.equal(pet.form.subtype,'pet');assert.equal(pet.form.position,'');assert.equal(pet.equipmentSubtype,'ornament')
+  assert.deepEqual(quick.quickPositions(data,'demo-role-0',pet.equipmentSubtype),quick.quickPositions(data,'demo-role-0',gear.equipmentSubtype))
+  const other=quick.quickViewState(quick.changeQuickCategory(data,'demo-role-0',pet.form,'other'),pet.equipmentSubtype)
+  assert.equal(other.equipmentSubtype,'ornament')
+  const equipment=quick.quickViewState(quick.changeQuickCategory(data,'demo-role-0',other.form,'equipment'),other.equipmentSubtype)
+  assert.equal(equipment.equipmentSubtype,'gear')
+})
+
 test('快速连续录入生成独立单件，保留共同选项，清空金额/名称/物品/备注，不复制上一件属性',()=>{
   const data=ledger.demoLedger(), before=JSON.stringify(data)
   const saved=form({date:'2026-10-12',note:'只属于头部'})

@@ -8,15 +8,15 @@
       <view class="chip-row"><text v-for="category in categories" :key="category.key" :class="['chip', form.category === category.key ? 'chip-active' : '']" @click="setCategory(category.key)">{{ category.label }}</text></view>
       <view class="card">
         <text class="label">{{ form.category === 'equipment' ? '装备类型' : '细分类型' }}</text>
-        <view class="chip-row quick-types"><text v-for="type in types" :key="type.key" :class="['chip', form.subtype === type.key ? 'chip-active' : '']" @click="setSubtype(type.key)">{{ type.label }}</text></view>
-        <template v-if="form.category === 'equipment'">
+        <view class="chip-row quick-types"><text v-for="type in allTypes" :key="type.key" v-show="type.category === form.category" :class="['chip', form.subtype === type.key ? 'chip-active' : '']" @click="setSubtype(type.key)">{{ type.label }}</text></view>
+        <view v-show="form.category === 'equipment'" class="quick-equipment">
           <text class="label quick-label">本件部位 *</text>
           <view class="quick-slots"><view v-for="slot in slots" :key="slot.position" :class="['quick-slot', form.position === slot.position ? 'quick-slot-active' : '']" @click="setPosition(slot.position)"><text :class="['quick-slot-title', form.position === slot.position ? 'quick-slot-selected' : '']">{{ slot.position }}</text><text class="quick-slot-count">{{ slot.count ? '已有 ' + slot.count + ' 件' : '未记录' }}</text></view></view>
           <text v-if="allRecorded" class="muted">本类型各部位已有记录，可继续补录其他配置。</text>
-          <view v-if="form.subtype !== 'jade'" class="field-group"><text class="label">装备等级（选填，下一件会保留）</text><input class="field quick-level" :value="form.level" @input="setLevel($event.detail.value)" @blur="setLevel($event.detail.value)" type="number" maxlength="3" placeholder="例如 100，未确认可留空" /></view>
+          <view v-show="form.subtype !== 'jade'" class="field-group"><text class="label">装备等级（选填，下一件会保留）</text><input class="field quick-level" :value="form.level" @input="setLevel($event.detail.value)" @blur="setLevel($event.detail.value)" type="number" maxlength="3" placeholder="例如 100，未确认可留空" /></view>
           <view class="row quick-item" @click="itemPicker = true"><ItemIcon :item-id="form.itemId" :item-name="itemName" :label="form.position" :small="true" /><view class="grow quick-item-copy"><text class="body">{{ itemName || '具体物品（可后补）' }}</text><text class="muted">{{ form.itemId ? '已选择官方物品图标' : '先按部位记录，稍后补齐配置' }}</text></view><text class="link">选择 ›</text></view>
-        </template>
-        <view v-else class="field-group"><text class="label">{{ form.category === 'pet' ? '召唤兽 / 装备名称' : '投入名称' }} *</text><input class="field quick-name" :value="form.name" @input="form.name = $event.detail.value" @blur="form.name = $event.detail.value" maxlength="200" placeholder="例如 画魂、点修费用" /></view>
+        </view>
+        <view v-show="form.category !== 'equipment'" class="field-group quick-name-group"><text class="label">{{ form.category === 'pet' ? '召唤兽 / 装备名称' : '投入名称' }} *</text><input class="field quick-name" :value="form.name" @input="form.name = $event.detail.value" @blur="form.name = $event.detail.value" maxlength="200" placeholder="例如 画魂、点修费用" /></view>
         <view class="field-group"><text class="label">{{ form.included ? '本件参考价（元，不重复计入）' : '本件实际投入（元）' }} *</text><input class="field quick-amount" :value="form.amount" @input="form.amount = $event.detail.value" @blur="form.amount = $event.detail.value" type="digit" maxlength="16" confirm-type="next" @confirm="saveNext()" placeholder="请输入本件金额，可填 0" /></view>
         <view v-if="canInclude" class="field-group"><view class="between"><text class="body">购号价已包含此资产</text><switch :checked="form.included" @change="form.included = $event.detail.value" color="#287565" /></view></view>
         <text class="link quick-more" @click="more = !more">{{ more ? '收起日期和备注 ↑' : '购入日期和备注（选填） ↓' }}</text>
@@ -36,7 +36,8 @@ import type { Asset } from '../../lib/ledger.uts'
 import { loadLedger, saveLedger } from '../../lib/storage.uts'
 import { makeId } from '../../lib/ledger.uts'
 import { EQUIPMENT_ITEMS } from '../../lib/item-catalog.uts'
-import { emptyQuickForm, quickPositions, nextQuickPosition, buildQuickEntry, continueQuickForm } from '../../lib/quick-entry.uts'
+import { emptyQuickForm, quickViewState, changeQuickCategory, quickPositions, nextQuickPosition, buildQuickEntry, continueQuickForm } from '../../lib/quick-entry.uts'
+import type { QuickForm } from '../../lib/quick-entry.uts'
 import { safeBottomPadding } from '../../lib/ui-layout.uts'
 import ItemIcon from '../../components/item-icon.uvue'
 import AttributePicker from '../../components/attribute-picker.uvue'
@@ -44,41 +45,45 @@ const dockPadding = ref(safeBottomPadding())
 onResize(() => { dockPadding.value = safeBottomPadding() })
 const id = ref('')
 const data = ref(emptyLedger())
-const form = reactive(emptyQuickForm())
+const viewState = ref(quickViewState(emptyQuickForm()))
+const form = computed(() => viewState.value.form)
 const role = computed(() => data.value.roles.find(r => r.id === id.value))
 const categories = CATEGORIES
-const types = computed(() => SUBTYPES.filter(s => s.category === form.category))
-const slots = computed(() => quickPositions(data.value,id.value,form.subtype))
+const allTypes = SUBTYPES
+const types = computed(() => SUBTYPES.filter(s => s.category === form.value.category))
+// 隐藏装备区时保留其列表，避免分类切换同时卸载原生分支与清空 v-for。
+const slots = computed(() => quickPositions(data.value,id.value,viewState.value.equipmentSubtype))
 const allRecorded = computed(() => slots.value.length > 0 && slots.value.every(s => s.count > 0))
-const canInclude = computed(() => role.value?.purchaseMode === 'bundle' && form.category !== 'other')
-const itemName = computed(() => EQUIPMENT_ITEMS.find(i => i.id === form.itemId)?.name || '')
-const itemOptions = computed(() => EQUIPMENT_ITEMS.filter(i => i.subtype === form.subtype && i.slot === form.position && (!form.level || form.subtype === 'jade' || i.levels.includes(Number(form.level)))).map(i => ({ value:i.id, label:i.name, group:i.kind + (i.levels.length ? ' · ' + i.levels.join('/') + '级' : '') })))
+const canInclude = computed(() => role.value?.purchaseMode === 'bundle' && form.value.category !== 'other')
+const itemName = computed(() => EQUIPMENT_ITEMS.find(i => i.id === form.value.itemId)?.name || '')
+const itemOptions = computed(() => EQUIPMENT_ITEMS.filter(i => i.subtype === form.value.subtype && i.slot === form.value.position && (!form.value.level || form.value.subtype === 'jade' || i.levels.includes(Number(form.value.level)))).map(i => ({ value:i.id, label:i.name, group:i.kind + (i.levels.length ? ' · ' + i.levels.join('/') + '级' : '') })))
 const fatal = ref(''), error = ref('')
 const more = ref(false), itemPicker = ref(false), saving = ref(false)
 const savedCount = ref(0), lastSaved = ref<Asset | null>(null)
 const draftKey = computed(() => 'mhxy-quick-draft-v1:' + id.value)
 const defaultsKey = computed(() => 'mhxy-quick-defaults-v1:' + id.value)
 let initial = '', leaving = false, leaveDialog = false
-function snapshot() { return JSON.stringify(form) }
+function snapshot() { return JSON.stringify(form.value) }
+function applyForm(next: QuickForm) { viewState.value = quickViewState(next,viewState.value.equipmentSubtype) }
 function setCategory(category: string) {
-  if (category === form.category) return
-  const defaults = emptyQuickForm(category)
-  Object.assign(form,{ category, subtype:defaults.subtype, position: category === 'equipment' ? nextQuickPosition(data.value,id.value,defaults.subtype) : '', included:false, itemId:'' })
-  error.value = ''
+  if (category === form.value.category || saving.value) return
+  try {
+    applyForm(changeQuickCategory(data.value,id.value,form.value,category))
+    itemPicker.value = false; error.value = ''
+  } catch(e) { error.value = errorMessage(e) }
 }
 function setSubtype(subtype: string) {
-  if (subtype === form.subtype) return
-  form.subtype = subtype; form.itemId = ''
-  form.position = form.category === 'equipment' ? nextQuickPosition(data.value,id.value,subtype) : ''
-  if (subtype === 'jade') form.level = ''
+  if (subtype === form.value.subtype || saving.value || !types.value.some(t => t.key === subtype)) return
+  const current = form.value
+  applyForm({ category:current.category, subtype, position:current.category === 'equipment' ? nextQuickPosition(data.value,id.value,subtype) : '', level:subtype === 'jade' ? '' : current.level, amount:current.amount, name:current.name, included:current.included, date:current.date, note:current.note, itemId:'' })
   error.value = ''
 }
-function setPosition(position: string) { if (form.position !== position) { form.position = position; form.itemId = '' } }
-function setLevel(level: string) { if (form.level !== level) { form.level = level; form.itemId = '' } }
+function setPosition(position: string) { if (form.value.position !== position) { form.value.position = position; form.value.itemId = '' } }
+function setLevel(level: string) { if (form.value.level !== level) { form.value.level = level; form.value.itemId = '' } }
 function chooseItem(values: string[]) {
   const item = EQUIPMENT_ITEMS.find(i => i.id === values[0])
-  form.itemId = item?.id || ''
-  if (item != null && !form.level && item.levels.length === 1) form.level = String(item.levels[0])
+  form.value.itemId = item?.id || ''
+  if (item != null && !form.value.level && item.levels.length === 1) form.value.level = String(item.levels[0])
   itemPicker.value = false
 }
 function load() {
@@ -89,16 +94,16 @@ onLoad(options => {
   try {
     id.value = options.parent || ''; load()
     const category = CATEGORIES.some(c => c.key === options.category) ? String(options.category) : 'equipment'
-    Object.assign(form,emptyQuickForm(category))
+    applyForm(emptyQuickForm(category))
     const raw = uni.getStorageSync(defaultsKey.value)
     if (typeof raw === 'string' && raw) {
       try {
         const prefs = JSON.parse(raw)
-        if (prefs != null && prefs.category === category && types.value.some(t => t.key === prefs.subtype)) { form.subtype = prefs.subtype; form.level = typeof prefs.level === 'string' ? prefs.level : ''; form.included = canInclude.value && prefs.included === true }
+        if (prefs != null && prefs.category === category && types.value.some(t => t.key === prefs.subtype)) { setSubtype(prefs.subtype); form.value.level = typeof prefs.level === 'string' ? prefs.level : ''; form.value.included = canInclude.value && prefs.included === true }
       } catch {}
     }
-    if (types.value.some(t => t.key === options.subtype)) form.subtype = String(options.subtype)
-    form.position = form.category === 'equipment' ? nextQuickPosition(data.value,id.value,form.subtype) : ''
+    if (types.value.some(t => t.key === options.subtype)) setSubtype(String(options.subtype))
+    form.value.position = form.value.category === 'equipment' ? nextQuickPosition(data.value,id.value,form.value.subtype) : ''
     initial = snapshot()
     const draft = uni.getStorageSync(draftKey.value)
     if (typeof draft === 'string' && draft) uni.showModal({title:'恢复快速录入草稿？',content:'上次尚未保存的金额和配置已保留，是否继续？',confirmText:'恢复草稿',cancelText:'重新录入',success:res=>{
@@ -106,7 +111,7 @@ onLoad(options => {
       try {
         const saved = JSON.parse(draft)
         if (!saved || !CATEGORIES.some(c => c.key === saved.category) || !SUBTYPES.some(t => t.category === saved.category && t.key === saved.subtype) || ['position','level','amount','name','date','note','itemId'].some(k => typeof saved[k] !== 'string') || typeof saved.included !== 'boolean') throw new Error('草稿格式无效')
-        Object.assign(form,{category:saved.category,subtype:saved.subtype,position:saved.position,level:saved.level,amount:saved.amount,name:saved.name,included:saved.included,date:saved.date,note:saved.note,itemId:saved.itemId})
+        applyForm({category:saved.category,subtype:saved.subtype,position:saved.position,level:saved.level,amount:saved.amount,name:saved.name,included:saved.included,date:saved.date,note:saved.note,itemId:saved.itemId})
       } catch(e) { error.value = '无法恢复草稿：' + errorMessage(e) }
     }})
   } catch(e) { fatal.value = errorMessage(e) }
@@ -117,13 +122,13 @@ function saveNext() {
   saving.value = true; error.value = ''
   try {
     // 每笔提交重新读取，保留其他页面已保存的记录。
-    const entry = buildQuickEntry(loadLedger(),id.value,form,makeId())
+    const entry = buildQuickEntry(loadLedger(),id.value,form.value,makeId())
     data.value = saveLedger(entry.data)
     lastSaved.value = entry.asset; savedCount.value++
-    Object.assign(form,continueQuickForm(data.value,id.value,form)); initial = snapshot()
+    applyForm(continueQuickForm(data.value,id.value,form.value)); initial = snapshot()
     try {
       uni.removeStorageSync(draftKey.value)
-      uni.setStorageSync(defaultsKey.value,JSON.stringify({category:form.category,subtype:form.subtype,level:form.level,included:form.included}))
+      uni.setStorageSync(defaultsKey.value,JSON.stringify({category:form.value.category,subtype:form.value.subtype,level:form.value.level,included:form.value.included}))
     } catch { error.value = '记录已保存，常用设置或草稿清理失败。请核对最近保存的记录。' }
     uni.showToast({title:'已保存，继续下一件',icon:'none'})
     uni.pageScrollTo({scrollTop:0,duration:0})
