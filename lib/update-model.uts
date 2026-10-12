@@ -1,0 +1,23 @@
+export const UPDATE_URL = 'https://github.com/Hwayin/mhxy-jsq/releases/latest/download/update.json'
+export const UPDATE_APP_ID = '__UNI__A9783A2'
+export const UPDATE_PACKAGE = 'com.mhxy.costledger'
+export type ApkRelease = { type: string, platform: string, appId: string, packageName: string, versionName: string, versionCode: number, url: string, size: number, sha256: string, notes: string }
+
+// 只接受本仓库 HTTPS Release 附件，不把远端配置当作任意下载/跳转指令。
+export function parseApkRelease(input: any): ApkRelease {
+  const data = typeof input === 'string' ? JSON.parse(input) : input
+  if (data == null || typeof data !== 'object' || Array.isArray(data)) throw new Error('更新信息格式无效')
+  if (data.type !== 'apk' || data.platform !== 'android' || data.appId !== UPDATE_APP_ID || data.packageName !== UPDATE_PACKAGE) throw new Error('更新包不属于当前应用')
+  if (typeof data.versionName !== 'string' || !/^[0-9]+\.[0-9]+\.[0-9]+$/.test(data.versionName) || data.versionName.length > 40) throw new Error('更新版本无效')
+  if (!Number.isInteger(data.versionCode) || data.versionCode < 1 || data.versionCode > 2147483647) throw new Error('更新版本号无效')
+  if (typeof data.url !== 'string' || !/^https:\/\/github\.com\/Hwayin\/mhxy-jsq\/releases\/download\/[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+\.apk$/.test(data.url)) throw new Error('更新下载地址无效')
+  if (!Number.isInteger(data.size) || data.size < 4 || data.size > 536870912) throw new Error('更新包大小无效')
+  if (typeof data.sha256 !== 'string' || !/^[a-fA-F0-9]{64}$/.test(data.sha256)) throw new Error('更新校验信息无效')
+  if (typeof data.notes !== 'string' || data.notes.length > 6000) throw new Error('更新说明无效')
+  return { type: 'apk', platform: 'android', appId: data.appId, packageName: data.packageName, versionName: data.versionName, versionCode: data.versionCode, url: data.url, size: data.size, sha256: data.sha256.toLowerCase(), notes: data.notes }
+}
+
+export function newerRelease(release: ApkRelease, installedCode: number): boolean {
+  if (!Number.isInteger(installedCode) || installedCode < 1) throw new Error('无法读取已安装版本，请使用正式安装包')
+  return release.versionCode > installedCode
+}

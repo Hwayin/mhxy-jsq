@@ -1,0 +1,82 @@
+import { parseApkRelease, newerRelease, UPDATE_URL, UPDATE_APP_ID, UPDATE_PACKAGE } from './update-model.uts'
+import type { ApkRelease } from './update-model.uts'
+import { verifyApk } from './apk-verify.uts'
+
+export type UpdateState = { phase: string, currentName: string, currentCode: number, native: boolean, progress: number, message: string, latest: ApkRelease | null }
+export function createUpdateController(api: any, state: UpdateState) {
+  let epoch = 0
+  let task: any = null
+  let path = ''
+  let checking: Promise<void> | null = null
+  function busy() { return ['checking','downloading','verifying','installing'].includes(state.phase) }
+  function removeFile(file: string) {
+    if (!file || !state.native) return
+    try { api.getFileSystemManager().unlink({ filePath: file, fail: () => {} }) } catch {}
+  }
+  function error(message: string) { state.phase = 'error'; state.message = message }
+  function check(): Promise<void> {
+    if (checking != null) return checking
+    if (busy()) return Promise.resolve()
+    removeFile(path); path = ''; state.phase = 'checking'; state.message = ''; state.latest = null
+    checking = new Promise<void>(resolve => {
+      api.request({ url: UPDATE_URL + '?t=' + Date.now(), method: 'GET', timeout: 15000,
+        success: (res: any) => {
+          try {
+            if (res.statusCode === 404) { state.phase = 'unpublished'; state.message = '尚未发布可下载的更新'; return }
+            if (res.statusCode !== 200) throw new Error('更新服务暂不可用，请稍后重试')
+            const latest = parseApkRelease(res.data)
+            state.latest = latest
+            state.phase = newerRelease(latest,state.currentCode) ? 'available' : 'current'
+          } catch (e) { error(e instanceof Error ? e.message : '更新信息无法读取') }
+        },
+        fail: () => { error('无法连接更新服务，请检查网络后重试。账本可继续离线使用。') },
+        complete: () => { resolve() }
+      })
+    }).finally(() => { checking = null })
+    return checking
+  }
+  function cancel() {
+    if (!['downloading','verifying'].includes(state.phase)) return
+    epoch++; const active = task; task = null
+    state.phase = 'available'; state.progress = 0; state.message = '已取消，可重新下载'
+    if (active != null) active.abort()
+    // 校验中的文件由完成回调关闭句柄后删除。
+  }
+  function download() {
+    if (!state.native || busy() || state.latest == null) return
+    const info = api.getAppBaseInfo()
+    if (info.appId !== UPDATE_APP_ID || info.packageName !== UPDATE_PACKAGE) { error('请在正式安装版中更新，调试基座不支持安装更新'); return }
+    const release = state.latest
+    if (!newerRelease(release,state.currentCode)) return
+    removeFile(path); path = ''
+    const current = ++epoch
+    state.phase = 'downloading'; state.progress = 0; state.message = ''
+    const active = api.downloadFile({ url: release.url, timeout: 600000,
+      success: async (res: any) => {
+        const file = res.tempFilePath
+        if (current !== epoch) { removeFile(file); return }
+        task = null
+        try {
+          if (res.statusCode !== 200 || !file) throw new Error('下载失败，请稍后重试')
+          state.phase = 'verifying'; state.progress = 0
+          await verifyApk(api.getFileSystemManager(),file,release,() => current !== epoch,p => { if (current === epoch) state.progress = p })
+          if (current !== epoch) { removeFile(file); return }
+          path = file; state.phase = 'ready'; state.message = '安装包已校验，请确认安装。'
+        } catch (e) { removeFile(file); if (current === epoch) error(e instanceof Error ? e.message : '无法校验安装包，请重新下载') }
+      },
+      fail: () => { if (current === epoch) { task = null; error('下载失败，请检查网络后重新下载') } }
+    })
+    task = active
+    active.onProgressUpdate((res: any) => { if (current === epoch && state.phase === 'downloading') state.progress = Math.max(0,Math.min(100,res.progress)) })
+  }
+  function install() {
+    if (!state.native || state.phase !== 'ready' || !path) return
+    state.phase = 'installing'; state.message = ''
+    api.installApk({ filePath: path,
+      success: () => { state.message = '已打开系统安装界面，请确认安装；如未完成，可重试安装。' },
+      fail: () => { state.message = '未能打开安装界面，请允许本应用安装未知应用后重试。' },
+      complete: () => { state.phase = 'ready' }
+    })
+  }
+  return { check, download, cancel, install }
+}

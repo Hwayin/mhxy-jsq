@@ -6,5 +6,7 @@ unpackage/
 *.p12
 *.mobileprovision
 .local/
+.env
+.env.*
 *.apk
 *.aab

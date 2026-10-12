@@ -5,7 +5,7 @@ import { runInNewContext } from 'node:vm'
 
 // 执行真实 App 脚本，模拟原生生命周期与弹窗回调，不复制退出实现。
 const source = await readFile(new URL('../App.uvue', import.meta.url), 'utf8')
-const script = source.match(/<script setup>([\s\S]*?)<\/script>/)[1]
+const script = source.match(/<script setup>([\s\S]*?)<\/script>/)[1].replace(/^import .*$/gm, '')
 
 function launchApp(platform = 'android') {
   const hooks = {}
@@ -14,6 +14,7 @@ function launchApp(platform = 'android') {
   const platformScript = platform === 'android' ? script : script.replace(/\/\/ #ifdef APP-ANDROID[\s\S]*?\/\/ #endif/g, '')
   runInNewContext(platformScript, {
     console: { log() {} },
+    scheduleStartupUpdateCheck() {},
     onLaunch: hook => { hooks.launch = hook },
     onLastPageBackPress: hook => { hooks.back = hook },
     onExit: hook => { hooks.exit = hook },

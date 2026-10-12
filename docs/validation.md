@@ -138,3 +138,27 @@ Web 与 Android 蒸汽模式前端编译通过，版本 0.5.0 / 500。原签名�
 HBuilderX 5.26 Web 与 Android 蒸汽模式前端编译通过，最终日志没有模板 / CSS 错误或警告。原生安全区改用窗口 API，避免 CSS `calc + env` 的不兼容写法。Android 打包配置预检通过，版本 0.6.0 / 600，包名与既有自有签名保持。
 
 本次未生成或安装新 APK，未连接真机。原生键盘、安全区实际效果、系统返回手势和触控仍待设备验收。新版说明和真实截图见 [玉色账本 v0.6](ui-v0.6.md)，素材来源见 [PC 端官方图标](item-icons.md)。
+
+## 装备分类栏横向滑动修复（2026-10-12）
+
+已在隔离手机浏览器复现：旧 `scroll-x` 在当前 uni-app x 中没有启用横向滚动，分类容器实际为 `overflow: hidden auto`，触摸后横向位置仍为 0。现改用 `direction="horizontal"`，明确横排与容器宽度；物品列表改为明确的纵向方向，同部位对比的滚动属性一并更新。
+
+物品分类按装备种类合并，避免同一类型因等级不同重复出现多个标签。等级仍保留在物品行与搜索匹配中；其他属性选择器的原有分组保持。Web 对内部滚动容器增加横向滚动边缘隔离，避免滑到尽头后带动浏览器返回；相关样式仅在 Web 编译。
+
+`scripts/smoke-picker-scroll.mjs` 使用实际触摸事件，在 390px 与 320px 的隔离 Edge 上下文验证左右滑动、末尾分类可见与筛选、向回滑动、物品列表纵向滚动及账本不变。新版主页面回归脚本也通过。Web / Android 蒸汽模式编译通过，无连接真机，本次未生成新 APK。
+
+依据：[DCloud scroll-view 文档](https://doc.dcloud.net.cn/uni-app-x/component/scroll-view.html)。截图：[390px](screenshots/picker-scroll-390.png)、[320px](screenshots/picker-scroll-320.png)。
+
+## APK 整包更新 v0.7（2026-10-12）
+
+按用户明确要求，将 `Hwayin/mhxy-jsq` 改为公开。发布前检查已提交的 576 个文件，未发现私钥、签名库或令牌；GitHub CLI 返回 `isPrivate: false`，匿名仓库 API 返回 HTTP 200。尚无发布的 Release / APK，更新描述 404 表示未发布，不报告「已是最新版」。
+
+「备份 → 应用更新」支持手动检查、更新说明、下载进度、取消与重试、按块 SHA-256 校验、系统安装确认和失败后重试安装。正式安装版启动检查一次，离线错误不弹窗、不影响账本；用户已进入录入流程时不打断编辑。浏览器与调试基座不下载或安装。当前版本 0.7.0 / 700，原包名、签名及账本 v2 格式保持。
+
+63 项测试通过。新增测试执行真实更新控制器，覆盖版本数值比较、元数据白名单、重复操作、HTTP 错误、离线、取消后的旧回调、校验取消、HTML/截断/错误摘要、安装失败与重试。流式 SHA-256 与 Node 标准实现对照，覆盖空输入、填充边界和百万字节分块。发布脚本的 APK manifest 解析覆盖压缩/存储与 UTF8/UTF16，不生成伪造版本的更新描述。
+
+`scripts/smoke-update.mjs` 在隔离 Edge 中模拟更新响应，验证 404、新版本、同版本、无效元数据、浏览器安装限制、390px/320px 显示及账本不变。截图中的 0.8.0 是测试响应，不代表实际发布：[390px](screenshots/update-390.png)、[320px](screenshots/update-320.png)。主页面录入/编辑、独立草稿及备份流程回归通过，用户数据未修改。
+
+HBuilderX 5.26 Web 与 Android 前端编译通过；生成的 Android manifest 正确包含 `uni-network`、`uni-fileSystemManager`、`uni-installApk` 和 `uni-getAppBaseInfo`。打包配置预检通过。生成发布附件的脚本使用自带 apksigner，检查实际包名、版本与原签名证书，再生成摘要和 `update.json`，工具可运行；实际云打包 APK 尚待提供，未提交云构建、未发布附件、未进行真机下载安装验证。
+
+首次 0.7.0 需要云打包并上传 GitHub Release 两个附件；原 0.6.0 用户手动覆盖安装一次，以后使用应用内更新。步骤见 [APK 在线更新](apk-updates.md)。

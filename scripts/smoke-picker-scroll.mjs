@@ -35,6 +35,8 @@ try {
         const fraction = sign < 0 ? .75 : .25
         const start = {x:box.x+box.width*(horizontal?fraction:.5),y:box.y+box.height*(horizontal?.5:fraction)}
         const before = await scrollValue(locator,axis)
+        const limit = await locator.evaluate((root,axis)=>Math.max(...[root,...root.querySelectorAll('*')].map(el=>axis==='x'?el.scrollWidth-el.clientWidth:el.scrollHeight-el.clientHeight)),axis)
+        if (sign > 0 && before === 0 || sign < 0 && before >= limit - 1) break
         await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[start]})
         for(let i=1;i<=8;i++) {
           await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:start.x+(horizontal?sign*amount*i/8:0),y:start.y+(horizontal?0:sign*amount*i/8)}]})

@@ -45,3 +45,5 @@ App / package 版本为 0.6.0，Android versionCode 为 600；账本仍为 v2，
 单元与资源校验使用 `node --test tests/*.test.js`。新版页面回归脚本为 `scripts/smoke-jade-ui.mjs`，支持 `PLAYWRIGHT_MODULE` 与 `PREVIEW_URL`，使用隔离 Edge 上下文。旧 `smoke-*` 脚本保留作为此前版本的流程记录，其选择器按旧界面编写。
 
 验证覆盖官方图标加载、折叠与展开、同部位对比、装备分步新增与编辑、金额保持、草稿保留与恢复及放弃、计价说明菜单、备份恢复和 320px 屏幕宽度。原生键盘、系统手势及真机触控仍需连接 Android 设备验收。
+
+分类栏已修复横向滑动，物品按装备种类合并标签，等级保留在物品条目与搜索中。触摸回归使用 `scripts/smoke-picker-scroll.mjs`，覆盖 390px / 320px 左右滑动、末尾筛选和物品上下滚动。

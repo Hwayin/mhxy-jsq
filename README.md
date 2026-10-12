@@ -20,6 +20,7 @@
 - 角色页直接展示三类新增投入，随号资产参考价单独列出。
 - 本地持久化、JSON 备份复制与导入、上一版本恢复。
 - Android 在最后一页按系统返回键时确认退出，支持继续使用并防止重复弹窗。
+- Android APK 整包更新：启动检查与手动检查、更新说明、下载进度、取消重试、SHA-256 校验及系统安装确认；发布流程见 [在线更新说明](docs/apk-updates.md)。
 - 玉色账本界面：紧凑总览、队伍筛选、角色部位折叠、明细菜单、装备三步录入和独立草稿恢复。
 - 445 个网易藏宝阁 PC 端官方物品图标离线显示，覆盖现有装备、灵饰和玉魄目录；通用记录使用占位图。
 - 角色测试 JSON：本机 Web 导出到固定文件，同角色 ID 直接覆盖；可从文件按角色 ID 恢复，保留其他角色。
@@ -83,6 +84,8 @@ Android 正式 APK 配置已准备：包名 `com.mhxy.costledger`、自有签名
 在项目目录执行 `.\scripts\pack-android.ps1` 只检查配置；登录 HBuilderX 后执行 `.\scripts\pack-android.ps1 -Submit` 才会把资源与签名提交 DCloud 云打包。也可在「发行 → App-Android/iOS-云打包」窗口手动填写。详细字段、文件路径与步骤见 [Android 打包说明](docs/android-packaging.md)。iOS 尚未配置 Apple 签名。
 
 当前交付是 App 源码与开发基础，安装包生成与真机验收状态见 [验证记录](docs/validation.md)。
+
+当前应用版本为 **0.7.0 / 700**。GitHub Release 的 APK 与 `update.json` 尚需本次云打包后上传；旧版首次需要手动覆盖安装一次，后续通过「备份 → 应用更新」升级。生成发布附件的命令和版本规则见 [APK 在线更新](docs/apk-updates.md)。
 
 ## 目录
 

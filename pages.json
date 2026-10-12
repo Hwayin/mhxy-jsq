@@ -31,6 +31,10 @@
       }
     },
     {
+      "path": "pages/update/index",
+      "style": { "navigationBarTitleText": "应用更新" }
+    },
+    {
       "path": "pages/asset/index",
       "style": {
         "navigationBarTitleText": "装备详情"

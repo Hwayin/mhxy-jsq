@@ -77,4 +77,7 @@ function addCustom() {
 .choice-caption { flex: 1; margin-right: 12rpx; }
 .choice-empty { padding: 32rpx 16rpx; }
 .choice-custom { margin-top: 14rpx; margin-bottom: 14rpx; }
+/* #ifdef WEB */
+.choice-groups :deep(.uni-scroll-view) { overscroll-behavior-x: contain; }
+/* #endif */
 </style>

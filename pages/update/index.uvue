@@ -1,0 +1,42 @@
+<template>
+  <view class="page">
+    <text class="eyebrow">梦幻多开账本 · 版本更新</text>
+    <text class="title">让账本保持最新</text>
+    <text class="subtitle">下载新版安装包，在系统界面确认覆盖安装。</text>
+    <view class="card">
+      <view class="between"><text class="section-title">当前版本</text><text class="tag">v{{ state.currentName }}</text></view>
+      <text class="muted update-note">更新来源：GitHub 官方发布仓库</text>
+      <text v-if="state.phase === 'current'" class="body update-note">当前已是最新版本</text>
+      <text v-if="state.phase === 'checking'" class="body update-note">正在检查新版本…</text>
+      <text v-if="state.message" :class="state.phase === 'error' ? 'error' : 'muted update-note'">{{ state.message }}</text>
+      <button class="secondary" :disabled="busy" @click="appUpdate.check()">{{ state.phase === 'checking' ? '检查中…' : '检查更新' }}</button>
+    </view>
+    <view v-if="(state.latest?.versionCode ?? 0) > state.currentCode" class="card">
+      <view class="between"><text class="section-title">发现新版本</text><text class="tag">v{{ state.latest?.versionName }}</text></view>
+      <text class="muted update-note">安装包 {{ ((state.latest?.size ?? 0) / 1048576).toFixed(1) }} MB</text>
+      <text class="body update-notes">{{ state.latest?.notes || '优化体验与修复问题' }}</text>
+      <view v-if="state.phase === 'downloading' || state.phase === 'verifying'" class="update-progress">
+        <text class="body">{{ state.phase === 'downloading' ? '正在下载' : '正在校验安装包' }} · {{ state.progress }}%</text>
+        <view class="progress-track"><view class="progress-fill" :style="{ width: state.progress + '%' }"></view></view>
+        <button class="secondary" @click="appUpdate.cancel()">取消</button>
+      </view>
+      <button v-else-if="state.native && (state.phase === 'ready' || state.phase === 'installing')" class="primary" :disabled="busy" @click="appUpdate.install()">{{ state.phase === 'installing' ? '正在打开安装界面…' : '安装新版' }}</button>
+      <button v-else-if="state.native" class="primary" :disabled="busy" @click="appUpdate.download()">{{ state.phase === 'error' ? '重新下载安装包' : '下载更新' }}</button>
+    </view>
+    <view v-if="!state.native" class="notice"><text class="notice-text">请在 Android 正式安装版中下载并安装更新。浏览器预览和调试基座仅支持检查版本。</text></view>
+    <view class="notice"><text class="notice-text">覆盖安装会保留账本，建议更新前到备份页导出一份备份。请直接安装新版，卸载应用会移除本机数据。</text></view>
+    <view class="spacer"></view>
+  </view>
+</template>
+<script setup>
+import { appUpdate, updateState as state } from '../../lib/app-update.uts'
+const busy = computed(() => ['checking','downloading','verifying','installing'].includes(state.phase))
+onPageShow(() => { if (state.phase === 'idle') appUpdate.check() })
+</script>
+<style>
+.update-note { margin-top: 18rpx; }
+.update-notes { margin-top: 24rpx; white-space: pre-wrap; }
+.update-progress { margin-top: 28rpx; }
+.progress-track { height: 12rpx; background-color: #e7f0ea; border-radius: 6rpx; margin-top: 20rpx; overflow: hidden; }
+.progress-fill { height: 12rpx; background-color: #287565; border-radius: 6rpx; }
+</style>

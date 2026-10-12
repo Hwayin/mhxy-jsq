@@ -1,0 +1,36 @@
+import { reactive } from 'vue'
+import manifest from '../manifest.json'
+import { createUpdateController } from './update-controller.uts'
+import type { UpdateState } from './update-controller.uts'
+import { UPDATE_APP_ID, UPDATE_PACKAGE } from './update-model.uts'
+
+let native = false
+let name = String(manifest.versionName)
+let code = Number(manifest.versionCode)
+// #ifdef APP-ANDROID
+const installed = uni.getAppBaseInfo()
+native = installed.appId === UPDATE_APP_ID && installed.packageName === UPDATE_PACKAGE
+if (native) { name = installed.appVersion ?? name; code = Number(installed.appVersionCode) }
+// #endif
+export const updateState = reactive<UpdateState>({ phase: 'idle', currentName: name, currentCode: code, native, progress: 0, message: '', latest: null })
+// 显式引用内置 API，让编译器正确收集原生打包模块。
+const api: any = { request: (options: any) => uni.request(options) }
+// #ifdef APP-ANDROID
+api.getAppBaseInfo = () => uni.getAppBaseInfo()
+api.getFileSystemManager = () => uni.getFileSystemManager()
+api.downloadFile = (options: any) => uni.downloadFile(options)
+api.installApk = (options: any) => uni.installApk(options)
+// #endif
+export const appUpdate = createUpdateController(api,updateState)
+
+export function scheduleStartupUpdateCheck() {
+  if (!native) return
+  setTimeout(async () => {
+    await appUpdate.check()
+    if (updateState.phase !== 'available' || updateState.latest == null) return
+    const pages = getCurrentPages()
+    // 用户已进入录入流程时，仅保留更新状态，避免打断编辑。
+    if (pages.length !== 1 || pages[0].route !== 'pages/dashboard/index') return
+    uni.showModal({ title: '发现新版本 ' + updateState.latest.versionName, content: '可下载新版安装包，覆盖安装会保留本地账本。', confirmText: '查看更新', cancelText: '稍后', confirmColor: '#287565', success: res => { if (res.confirm) uni.navigateTo({ url: '/pages/update/index' }) } })
+  },1800)
+}

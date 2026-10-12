@@ -1,5 +1,6 @@
 <script setup>
-onLaunch(() => { console.log('梦幻多开账本已启动') })
+import { scheduleStartupUpdateCheck } from './lib/app-update.uts'
+onLaunch(() => { console.log('梦幻多开账本已启动'); scheduleStartupUpdateCheck() })
 
 // #ifdef APP-ANDROID
 let exitDialogOpen = false
