@@ -11,7 +11,7 @@ const args=process.argv.slice(2)
 const value=name=>{const at=args.indexOf(name);return at>=0 ? args[at+1] : null}
 const parseJson=text=>JSON.parse(text.replace(/^\uFEFF/,''))
 if (!value('--apk') || args.includes('--help')) {
-  console.log('用法：node scripts/prepare-update-release.mjs --apk "云打包得到的.apk" --notes "更新说明.txt" [--hbuilder "HBuilderX目录"]')
+  console.log('用法：node scripts/prepare-update-release.mjs --apk "正式安装包.apk" --notes "更新说明.txt" [--hbuilder "HBuilderX目录"]')
   process.exit(args.includes('--help') ? 0 : 1)
 }
 try {
@@ -23,7 +23,7 @@ try {
   const size=(await stat(apk)).size
   if (size<4 || size>536870912) throw Error('APK 大小超出支持范围')
   const actual=apkManifest(await readFile(apk))
-  if (actual.package!==signing.packageName || actual.versionName!==manifest.versionName || actual.versionCode!==Number(manifest.versionCode)) throw Error('APK 包名或版本与当前项目不一致，请重新云打包：'+JSON.stringify(actual))
+  if (actual.package!==signing.packageName || actual.versionName!==manifest.versionName || actual.versionCode!==Number(manifest.versionCode)) throw Error('APK 包名或版本与当前项目不一致，请重新构建：'+JSON.stringify(actual))
   const hx=path.resolve(value('--hbuilder') ?? path.join(process.env.USERPROFILE,'Desktop','HBuilderX'))
   const verified=execFileSync(path.join(hx,'plugins/amazon-corretto/bin/java.exe'),['-jar',path.join(hx,'plugins/app-safe-pack/apksigner.jar'),'verify','--print-certs',apk],{encoding:'utf8',maxBuffer:1048576,stdio:['ignore','pipe','pipe']})
   const certs=[...verified.matchAll(/Signer #\d+ certificate SHA-256 digest:\s*([a-fA-F0-9]+)/g)].map(m=>m[1].toLowerCase())

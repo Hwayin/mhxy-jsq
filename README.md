@@ -86,9 +86,11 @@ Android 正式 APK 沿用已安装版的实际包名 `uni.app.UNIA9783A2` 和 DC
 
 当前交付是 App 源码与开发基础，安装包生成与真机验收状态见 [验证记录](docs/validation.md)。
 
-当前应用版本为 **0.8.1 / 801**，保留快速录入并修复 Android 更新校验重复读取文件头的问题。旧 0.7.1 / 0.8.0 如提示「安装包大小不匹配」，通过浏览器下载 0.8.1 APK，直接覆盖安装一次，保留原账本；之后使用「备份 → 应用更新」。生成发布附件的命令和版本规则见 [APK 在线更新](docs/apk-updates.md)。
+本机已配置原云端证书和官方 Vapor SDK，可执行 `.\scripts\pack-android-offline.ps1` 生成正式 APK。增加版本并提交推送后，加 `-Publish` 自动上传并设为 Latest，无须提交云打包任务。首次配置与工具版本见 [本地离线打包](docs/android-offline-packaging.md)。
 
-以后先增加版本号、提交并推送代码，再执行 `.\scripts\pack-android.ps1 -Submit -Publish`：脚本自动等待云打包、验证 APK、上传 APK 和 `update.json`，并将 GitHub Release 设为 Latest。已有 APK 可使用 `.\scripts\publish-apk-update.ps1 -Apk "安装包路径"`；加 `-DryRun` 可只预演。详见 [自动发布步骤](docs/apk-updates.md)。
+当前应用版本为 **0.8.2 / 802**，修复快速录入切换召唤兽时的原生崩溃，保留 Android 更新分块校验、官方物品图标和玉色账本。正式本地 APK 已在手机覆盖安装，用户确认账本金额一致且分类切换正常。发布状态与下载步骤见 [APK 在线更新](docs/apk-updates.md)。旧 0.7.1 / 0.8.0 的校验器若提示「安装包大小不匹配」，需要通过浏览器下载新版并覆盖安装一次。
+
+以后先增加版本号、提交并推送代码，再执行 `.\scripts\pack-android-offline.ps1 -Publish`：本机生成 APK、验包、上传 APK 和 `update.json`，并将 GitHub Release 设为 Latest。云端构建也可继续使用 `.\scripts\pack-android.ps1 -Submit -Publish`。已有 APK 可使用 `.\scripts\publish-apk-update.ps1 -Apk "安装包路径"`；加 `-DryRun` 可只预演。详见 [自动发布步骤](docs/apk-updates.md)。
 
 ## 目录
 

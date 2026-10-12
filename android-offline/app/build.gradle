@@ -1,0 +1,93 @@
+import groovy.json.JsonSlurper
+
+plugins {
+    id 'com.android.application'
+    id 'io.dcloud.uts.kotlin'
+    id 'io.dcloud.uts.auto-register'
+}
+
+def manifest = new JsonSlurper().parse(rootProject.file('../manifest.json'))
+def profile = new JsonSlurper().parse(rootProject.file('../release/android.json'))
+def prepared = new JsonSlurper().parse(rootProject.file('../unpackage/offline-android/prepared.json'))
+def local = new Properties()
+rootProject.file('local.properties').withInputStream { local.load(it) }
+def sdk = local.getProperty('dcloud.sdk.dir')
+
+android {
+    namespace profile.packageName
+    compileSdk 36
+    defaultConfig {
+        applicationId profile.packageName
+        minSdk profile.minSdkVersion
+        targetSdk profile.targetSdkVersion
+        versionCode Integer.parseInt(manifest.versionCode)
+        versionName manifest.versionName
+        manifestPlaceholders = [dcloudAppId: manifest.appid]
+        ndk { abiFilters.addAll(profile.abiFilters) }
+        buildConfigField 'String[]', 'UTSHooksClassArray', '{}'
+    }
+    buildFeatures { buildConfig true }
+    signingConfigs {
+        original {
+            storeFile file(System.getenv('MHXY_OFFLINE_STORE_FILE'))
+            storePassword System.getenv('MHXY_OFFLINE_STORE_PASSWORD')
+            keyAlias System.getenv('MHXY_OFFLINE_KEY_ALIAS')
+            keyPassword System.getenv('MHXY_OFFLINE_KEY_PASSWORD')
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.original
+            minifyEnabled false
+            debuggable false
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    sourceSets.main {
+        assets.srcDirs = [file(prepared.assetsDir)]
+        res.srcDirs += [file(prepared.resDir)]
+    }
+    androidResources {
+        noCompress 'uni-app-x-framework-vapor', 'uni-app-x-framework-vapor-dev', 'js'
+        ignoreAssetsPattern '!.svn:!.git:.*:!CVS:!thumbs.db:!picasa.ini:!*.scc:*~'
+    }
+    aaptOptions { additionalParameters '--auto-add-overlay' }
+    packagingOptions {
+        pickFirst 'lib/*/libstlport_shared.so'
+        pickFirst 'lib/*/libc++_shared.so'
+        jniLibs { useLegacyPackaging false }
+    }
+}
+
+dependencies {
+    // Order matches the official SDK recommendation for libc++_shared.so.
+    implementation files("${sdk}/SDK/libs/app-runtime-release.aar")
+    prepared.libraries.findAll { it != 'app-runtime-release.aar' }.each { name ->
+        implementation files("${sdk}/SDK/libs/${name}")
+    }
+    implementation 'androidx.tracing:tracing-ktx:1.3.0'
+    implementation 'androidx.core:core-ktx:1.10.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
+    implementation 'androidx.exifinterface:exifinterface:1.3.6'
+    implementation 'com.google.android.material:material:1.10.0'
+    implementation 'org.jetbrains.kotlin:kotlin-reflect:2.2.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+    implementation 'com.facebook.fresco:fresco:3.4.0'
+    implementation 'com.facebook.fresco:animated-base:3.4.0'
+    implementation 'com.facebook.fresco:animated-gif:3.4.0'
+    implementation 'com.facebook.fresco:animated-webp:3.4.0'
+    implementation 'com.facebook.fresco:webpsupport:3.4.0'
+    implementation 'com.facebook.fresco:imagepipeline:3.4.0'
+    implementation 'com.facebook.fresco:drawee:3.4.0'
+    implementation 'com.facebook.fresco:middleware:3.4.0'
+    implementation 'com.caverock:androidsvg:1.4'
+    implementation 'com.alibaba:fastjson:1.2.83'
+    implementation 'com.github.getActivity:XXPermissions:18.63'
+    implementation 'androidx.profileinstaller:profileinstaller:1.4.1'
+    implementation 'com.squareup.okhttp3:okhttp:3.12.12'
+}

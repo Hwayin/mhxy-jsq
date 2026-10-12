@@ -1,8 +1,10 @@
 # APK 整包在线更新
 
-项目使用 HBuilderX 云打包，GitHub Release 托管 APK 和更新描述。源码仓库 `Hwayin/mhxy-jsq` 已按要求公开；客户端不包含 GitHub 令牌。
+项目支持 HBuilderX 云打包和 [本地离线打包](android-offline-packaging.md)，GitHub Release 托管 APK 和更新描述。源码仓库 `Hwayin/mhxy-jsq` 已按要求公开；客户端不包含 GitHub 令牌。
 
-当前版本 **0.8.1 / 801** 已通过自动脚本云打包并发布为 [Latest](https://github.com/Hwayin/mhxy-jsq/releases/tag/v0.8.1)，保留快速录入，并修复 Android 更新校验重复读取 APK 文件头的问题。手机上的旧 0.7.1 / 0.8.0 若提示「安装包大小不匹配」，需要通过浏览器 [下载 0.8.1 APK](https://github.com/Hwayin/mhxy-jsq/releases/download/v0.8.1/mhxy-ledger-0.8.1.apk)，直接覆盖安装一次；旧校验器无法通过修改服务器的元数据修复。不要卸载，先导出账本备份，覆盖安装后核对版本与金额，再使用应用内更新升级后续版本。
+本地正式 **0.8.2 / 802** 已在用户手机覆盖安装，金额一致且快速录入分类切换正常。构建后自动发布 Latest 的实际结果见 [验证记录](validation.md)。
+
+此前 **0.8.1 / 801** 已通过自动脚本云打包并发布为 [稳定 Release](https://github.com/Hwayin/mhxy-jsq/releases/tag/v0.8.1)，保留快速录入，并修复 Android 更新校验重复读取 APK 文件头的问题。手机上的旧 0.7.1 / 0.8.0 若提示「安装包大小不匹配」，需要通过浏览器下载新版 APK，直接覆盖安装一次；旧校验器无法通过修改服务器的元数据修复。不要卸载，覆盖安装后核对版本与金额，再使用应用内更新升级后续版本。
 
 0.8.1 APK 大小 **38,831,381 字节**，SHA-256 `7d3987228bb2f0baefa299cfb68228ab0118f0d395df57d8e8a2889485ad1e7f`，原包名和云端证书核验通过。Release 对应源码 `c4e18b1e7cb34dd29bb2a39c747cf6fe25a6a3e1`，匿名元数据与完整下载验证通过。[同一修复包的云端下载链接](https://app.liuyingyong.cn/build/download/8d5e4410-c5fb-11f1-8f02-3fc7c49167b1) 可作备用。手机覆盖安装及后续原生校验仍待用户确认。
 
@@ -12,7 +14,7 @@
 
 此前用户反馈已升级 0.8.0、原账本金额一致且可见「快速录入」。随后提供的新截图显示 0.7.1 在下载后被大小校验拦截。按 DCloud 官方 Android 源码行为复现后，确认旧校验代码省略 `position` 会重复读取文件开头；因此此前反馈不作为所有设备均完成原生校验的证据，修复版覆盖安装和后续在线升级仍须手机验收。
 
-## 云打包完成后自动发布（推荐）
+## 云打包完成后自动发布
 
 先递增版本（下一次例如 `manifest.json` 中 0.9.0 / 900，同时同步 `package.json`），提交并推送本次代码。保持 HBuilderX 已打开并登录，GitHub CLI 已通过 `gh auth login` 登录且拥有仓库发布权限。
 
@@ -116,6 +118,8 @@ gh release create v0.7.0 "unpackage/update-release/v0.7.0/mhxy-ledger-0.7.0.apk"
 ```
 
 ## 后续每次更新
+
+已配置本地离线打包：版本递增、测试并提交推送后，执行 `.\scripts\pack-android-offline.ps1 -Publish`，即可在本机生成正式 APK 并自动发布 Latest。完整步骤见 [本地打包](android-offline-packaging.md)。手机更新源和更新入口保持相同。
 
 同时递增 `manifest.json` 的 `versionName` 与 `versionCode`，同步 `package.json` 版本；例如 0.8.0 / 800。提交推送代码后重新云打包，运行生成脚本，再创建 `v0.8.0` Release 并上传对应两个附件。每个版本使用独立 APK 文件名，不替换已经发布过的安装包。只有正式发布 Latest 后手机才会看到新版；GitHub 源码 push 本身不会生成或发布 APK。
 

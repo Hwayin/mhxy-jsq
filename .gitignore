@@ -10,3 +10,7 @@ unpackage/
 .env.*
 *.apk
 *.aab
+android-offline/.gradle/
+android-offline/.kotlin/
+android-offline/**/build/
+android-offline/local.properties

@@ -1,5 +1,7 @@
 # Android APK 打包配置
 
+已增加 [本地离线打包](android-offline-packaging.md)，可以在本机使用下载的原云端证书生成 APK。后文保留云打包流程。
+
 当前配置沿用手机实际安装的 0.7.0：包名 `uni.app.UNIA9783A2`、DCloud 云端证书。已从用户提供的原 APK 验证实际包名与证书指纹，记录于 `release/android-update-identity.json`。原先准备的本机自有证书保留作备份，覆盖更新使用原云端证书。
 
 | 项目 | 配置 |
