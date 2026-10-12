@@ -1,12 +1,23 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { cloudReply, waitForCloud, validateRemoteUpdate, assertVersionForward, assertUploadedAssets, publishPreparedRelease, redactCloudOutput } from '../scripts/apk-release-publisher.mjs'
+import { retryRead, cloudReply, waitForCloud, validateRemoteUpdate, assertVersionForward, assertUploadedAssets, publishPreparedRelease, redactCloudOutput } from '../scripts/apk-release-publisher.mjs'
 const ticket='044c07b0-c5f1-11f1-87e0-456436f0c242'
 const identity={appId:'__UNI__A9783A2',packageName:'uni.app.UNIA9783A2'}
 const update={type:'apk',platform:'android',...identity,versionName:'0.9.0',versionCode:900,size:40000000,sha256:'a'.repeat(64),notes:'更新说明',url:'https://github.com/Hwayin/mhxy-jsq/releases/download/v0.9.0/mhxy-ledger-0.9.0.apk'}
 const prepared={update,apkName:'mhxy-ledger-0.9.0.apk',apkPath:'/staged/mhxy-ledger-0.9.0.apk',jsonPath:'/staged/update.json',notesPath:'/staged/notes.md',jsonSize:900,jsonHash:'b'.repeat(64)}
 const assets=()=>[{name:prepared.apkName,state:'uploaded',size:update.size,digest:'sha256:'+update.sha256},{name:'update.json',state:'uploaded',size:prepared.jsonSize,digest:'sha256:'+prepared.jsonHash}]
 const sourceSha='c'.repeat(40)
+test('只读网络操作自动重试短暂失败，校验错误不重试，重试次数有限',async()=>{
+  let count=0;const waits=[]
+  assert.equal(await retryRead(async()=>{if(++count<3)throw TypeError('fetch failed');return 'ok'},{sleep:async ms=>{waits.push(ms)},log(){}}),'ok')
+  assert.deepEqual(waits,[2000,4000])
+  count=0
+  await assert.rejects(retryRead(async()=>{count++;throw Error('digest mismatch')},{sleep:async()=>{},log(){}}),/digest/)
+  assert.equal(count,1)
+  count=0
+  await assert.rejects(retryRead(async()=>{count++;throw Object.assign(Error('HTTP 503'),{retryable:true})},{sleep:async()=>{},log(){}}),/503/)
+  assert.equal(count,3)
+})
 function cloud(extra={}) {return {ok:true,ticket,appid:identity.appId,platform:'ANDROID-CLC',terminal:false,result:'pending',status:'INQUEUE',description:'队列中',...extra}}
 test('解析带时间前缀的 CLI JSON，错误文本不会被误判为成功，token 不输出',()=>{
   assert.equal(cloudReply('日志\n12:00:00 '+JSON.stringify(cloud())).ticket,ticket)

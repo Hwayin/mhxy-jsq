@@ -47,7 +47,7 @@
 .\scripts\publish-apk-update.ps1 -Apk "D:\下载\新版.apk" -DryRun
 ```
 
-预演会读取 GitHub 并校验/暂存本机附件，不创建 Release、不上传、不更改 Latest。正式运行遇到同版本同 APK 已发布时仅复核，不覆盖附件；若已发布新版尚非 Latest，则核验后设置 Latest。同版本不同 APK、版本回退、云任务失败、签名不一致、等待期间源码改变或附件校验失败都会停止。上传失败的同源码草稿可重跑补齐；正式发布后匿名验证断网，重跑会继续核验该已发布包。
+预演会读取 GitHub 并校验/暂存本机附件，不创建 Release、不上传、不更改 Latest。元数据和 APK 下载遇到短暂网络错误会自动重试，最多 3 次。正式运行遇到同版本同 APK 已发布时仅复核，不覆盖附件；若已发布新版尚非 Latest，则核验后设置 Latest。同版本不同 APK、版本回退、云任务失败、签名不一致、等待期间源码改变或附件校验失败都会停止。上传失败的同源码草稿可重跑补齐；正式发布后匿名验证断网，重跑会继续核验该已发布包。
 
 当前 0.8.0 已发布，`-Submit -Publish` 会要求先升版本，避免重复云构建。脚本记录保存在忽略的 `.local/android-cloud-last-task.json`，APK 与发布附件保存在 `unpackage/update-release/v<版本>/`，GitHub 凭据由 `gh` 管理。
 

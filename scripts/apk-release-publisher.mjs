@@ -1,6 +1,18 @@
 export const UPDATE_REPO = 'Hwayin/mhxy-jsq'
 export const MAX_APK_BYTES = 536870912
 
+export async function retryRead(operation,{attempts=3,sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),log=console.log}={}) {
+  for(let attempt=1;attempt<=attempts;attempt++) {
+    try { return await operation() }
+    catch(error) {
+      const transient=error instanceof TypeError || ['AbortError','TimeoutError'].includes(error.name) || error.retryable===true
+      if(!transient || attempt===attempts) throw error
+      log(`网络暂不可用，${attempt*2} 秒后重试（${attempt+1}/${attempts}）…`)
+      await sleep(attempt*2000)
+    }
+  }
+}
+
 export function redactCloudOutput(value) {
   return String(value).replace(/([?&]token=)[^&\s)"\\]+/gi,'$1[REDACTED]')
 }

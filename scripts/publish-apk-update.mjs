@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto'
 import { spawn } from 'node:child_process'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { UPDATE_REPO, MAX_APK_BYTES, redactCloudOutput, waitForCloud, validateTicket, validateRemoteUpdate, assertVersionForward, publishPreparedRelease } from './apk-release-publisher.mjs'
+import { UPDATE_REPO, MAX_APK_BYTES, retryRead, redactCloudOutput, waitForCloud, validateTicket, validateRemoteUpdate, assertVersionForward, publishPreparedRelease } from './apk-release-publisher.mjs'
 
 const root=fileURLToPath(new URL('../',import.meta.url))
 const parseJson=text=>JSON.parse(text.replace(/^\uFEFF/,''))
@@ -49,26 +49,28 @@ async function github(endpoint,{allow404=false}={}) {
   if(parsed==null) throw Error('GitHub 未返回有效 JSON')
   return parsed
 }
-async function jsonUrl(url) {
+function httpFailure(message,status) { return Object.assign(Error(message+'，HTTP '+status),{retryable:[404,408,429,500,502,503,504].includes(status)}) }
+async function jsonUrlOnce(url) {
   const response=await fetch(url,{signal:AbortSignal.timeout(30000),headers:{'User-Agent':'mhxy-apk-publisher','Cache-Control':'no-cache'}})
-  if(response.status!==200) throw Error('无法读取更新描述，HTTP '+response.status)
+  if(response.status!==200) throw httpFailure('无法读取更新描述',response.status)
   const text=await response.text()
   if(text.length>20000) throw Error('更新描述超出大小限制')
   return JSON.parse(text)
 }
+const jsonUrl=url=>retryRead(()=>jsonUrlOnce(url))
 async function sha256(file) {
   const hash=createHash('sha256')
   for await(const chunk of createReadStream(file)) hash.update(chunk)
   return hash.digest('hex')
 }
 async function exists(file) {try{await access(file);return true}catch{return false}}
-async function download(url,destination) {
+async function downloadOnce(url,destination) {
   const part=destination+'.part'
   const response=await fetch(url,{signal:AbortSignal.timeout(300000),headers:{'User-Agent':'mhxy-apk-publisher'}})
-  if(response.status!==200 || !response.body) throw Error('APK 下载失败，HTTP '+response.status)
+  if(response.status!==200 || !response.body) throw httpFailure('APK 下载失败',response.status)
   if(Number(response.headers.get('content-length'))>MAX_APK_BYTES) throw Error('APK 超过 512MB 限制')
   const file=await open(part,'w')
-  let size=0,lastProgress=0
+  let size=0,lastProgress=Date.now()
   try {
     for await(const chunk of response.body) {
       size+=chunk.length
@@ -82,6 +84,7 @@ async function download(url,destination) {
   await unlink(destination).catch(error=>{if(error.code!=='ENOENT')throw error})
   await rename(part,destination)
 }
+const download=(url,destination)=>retryRead(()=>downloadOnce(url,destination))
 async function main(options) {
   if(options['--help']) {console.log(help);return}
   const manifest=parseJson(await readFile(path.join(root,'manifest.json'),'utf8'))
@@ -183,4 +186,7 @@ async function main(options) {
   },{dryRun:options['--dry-run']===true})
   console.log(result.dryRun?'预演完成，未修改 GitHub Release。':'手机可在“备份 → 应用更新”检查新版。')
 }
-try {await main(argumentsFrom(process.argv.slice(2)))} catch(error) {console.error(redactCloudOutput(error.message));process.exitCode=1}
+try {await main(argumentsFrom(process.argv.slice(2)))} catch(error) {
+  console.error(redactCloudOutput(error.message)+(error.cause?.code?'（'+error.cause.code+'）':''))
+  process.exitCode=1
+}
