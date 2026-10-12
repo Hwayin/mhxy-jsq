@@ -236,3 +236,5 @@ HBuilderX 5.26 Web 与 Android 前端编译通过；生成的 Android manifest �
 依据：[DCloud 独立菜单 / 弹窗模块配置](https://doc.dcloud.net.cn/uni-app-x/native/modules/android/others.html)、[操作菜单使用 dialogPage 的说明](https://doc.dcloud.net.cn/uni-app-x/api/action-sheet.html)。
 
 Windows 默认 PowerShell 完成 0.8.3 正式资源导出、本地 Release 构建与 lint，原包名 / 版本 / 云端签名校验通过。APK DEX 已确认包含两个独立弹窗实现。经用户已授权的 USB 连接从 0.8.2 使用 `install -r` 覆盖安装成功，未卸载或清空数据，进程 23256 正常启动。用户在新建角色选择门派后放弃修改、打开账号菜单、最后一页返回并点击「继续使用」，确认「三项正常，金额一致」。本轮未要求用户新增实际角色或修改成本；发布结果随后记录。
+
+手机验收后进程保持 23256，版本为 0.8.3 / 803，近期应用日志没有新的原生崩溃。提交推送 `b2af3686638b7d29be86f99b36d6fea3f657d1d9` 后实际执行本地 `-Publish` 全流程成功：重新导出 / 构建与验包、两个附件上传、服务端摘要核对、稳定 Latest 发布和匿名完整 APK 下载校验全部通过。[v0.8.3 Release](https://github.com/Hwayin/mhxy-jsq/releases/tag/v0.8.3) 不是草稿或 Pre-release；APK 为 83,881,257 字节，SHA-256 `cb95ff7b8cc23b3beabf5747e27842e3043d7a76e2a9510a16633f26c1c92a5e`。手机本轮通过 USB 覆盖验收，未将同版本重复安装描述为在线升级。

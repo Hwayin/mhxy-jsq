@@ -2,9 +2,13 @@
 
 项目支持 HBuilderX 云打包和 [本地离线打包](android-offline-packaging.md)，GitHub Release 托管 APK 和更新描述。源码仓库 `Hwayin/mhxy-jsq` 已按要求公开；客户端不包含 GitHub 令牌。
 
-当前 **0.8.2 / 802** 已通过本地一键脚本构建并发布为 [GitHub Latest](https://github.com/Hwayin/mhxy-jsq/releases/tag/v0.8.2)，修复快速录入切换召唤兽时的原生崩溃。用户手机已覆盖安装，金额一致且分类切换正常。0.8.1 用户可在「备份 → 应用更新」升级；旧校验器有问题的用户可以通过浏览器 [下载 0.8.2 APK](https://github.com/Hwayin/mhxy-jsq/releases/download/v0.8.2/mhxy-ledger-0.8.2.apk)，直接覆盖安装。
+当前 **0.8.3 / 803** 已通过本地一键脚本构建并发布为 [GitHub Latest](https://github.com/Hwayin/mhxy-jsq/releases/tag/v0.8.3)，修复门派选择、菜单与退出弹窗无响应。补齐独立菜单 / 确认弹窗模块，门派使用可搜索列表。用户手机已覆盖安装，确认三项操作正常且金额一致。0.8.1 / 0.8.2 用户可在「备份 → 应用更新」升级；旧包不能弹出安装确认或校验器异常时，可通过浏览器 [下载 0.8.3 APK](https://github.com/Hwayin/mhxy-jsq/releases/download/v0.8.3/mhxy-ledger-0.8.3.apk)，直接覆盖安装，无须卸载。
 
-发布 APK 为 **83,781,969 字节（约 79.9 MiB）**，SHA-256 `07f344443a7cd92b485dd25392ccad7342d71858c53537fa1358bba8419000a0`，源码提交 `48a2fc1a1d2b384ef77c6eb79c4d3ac915ee094b`。两个附件的 GitHub 摘要及匿名完整下载校验通过。详细结果见 [验证记录](validation.md)。
+0.8.3 APK 为 **83,881,257 字节（约 80.0 MiB）**，SHA-256 `cb95ff7b8cc23b3beabf5747e27842e3043d7a76e2a9510a16633f26c1c92a5e`，源码提交 `b2af3686638b7d29be86f99b36d6fea3f657d1d9`。两个附件的服务端摘要与匿名完整下载校验通过。详细结果见 [验证记录](validation.md)。
+
+上一版 **0.8.2 / 802** 修复快速录入切换召唤兽的原生崩溃；本地包遗漏的弹窗模块已由 0.8.3 修正。
+
+0.8.2 APK 为 **83,781,969 字节（约 79.9 MiB）**，SHA-256 `07f344443a7cd92b485dd25392ccad7342d71858c53537fa1358bba8419000a0`，源码提交 `48a2fc1a1d2b384ef77c6eb79c4d3ac915ee094b`。两个附件的 GitHub 摘要及匿名完整下载校验通过。
 
 此前 **0.8.1 / 801** 已通过自动脚本云打包并发布为 [稳定 Release](https://github.com/Hwayin/mhxy-jsq/releases/tag/v0.8.1)，保留快速录入，并修复 Android 更新校验重复读取 APK 文件头的问题。手机上的旧 0.7.1 / 0.8.0 若提示「安装包大小不匹配」，需要通过浏览器下载新版 APK，直接覆盖安装一次；旧校验器无法通过修改服务器的元数据修复。不要卸载，覆盖安装后核对版本与金额，再使用应用内更新升级后续版本。
 
@@ -12,7 +16,7 @@
 
 已安装 0.7.0 的真实包名是 `uni.app.UNIA9783A2`、签名为 DCloud 云端证书，与最初计划的配置不同。修复版沿用实际包名与原云端证书，账本留在原应用数据目录。0.7.0 可直接手动覆盖安装最新修复版，无须中转 0.7.1。
 
-先前 [v0.8.0 Release](https://github.com/Hwayin/mhxy-jsq/releases/tag/v0.8.0) 已正式发布，包含 APK 与 `update.json` 两个附件，目前 Latest 已更新为 0.8.2。0.8.0 匿名下载地址已实际验证，APK 大小 **38,830,990 字节**，SHA-256 为 `8eabda23a22ff01d1d47f3546196271656ceca70f4e69b9b74b286065f2218e0`；Release 对应源码提交 `6464e93fe904eeafaf65d497f7bbbd69cf067a6b`。
+先前 [v0.8.0 Release](https://github.com/Hwayin/mhxy-jsq/releases/tag/v0.8.0) 已正式发布，包含 APK 与 `update.json` 两个附件，目前 Latest 已更新为 0.8.3。0.8.0 匿名下载地址已实际验证，APK 大小 **38,830,990 字节**，SHA-256 为 `8eabda23a22ff01d1d47f3546196271656ceca70f4e69b9b74b286065f2218e0`；Release 对应源码提交 `6464e93fe904eeafaf65d497f7bbbd69cf067a6b`。
 
 此前用户反馈已升级 0.8.0、原账本金额一致且可见「快速录入」。随后提供的新截图显示 0.7.1 在下载后被大小校验拦截。按 DCloud 官方 Android 源码行为复现后，确认旧校验代码省略 `position` 会重复读取文件开头；因此此前反馈不作为所有设备均完成原生校验的证据，修复版覆盖安装和后续在线升级仍须手机验收。
 
