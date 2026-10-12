@@ -218,3 +218,7 @@ HBuilderX 5.26 Web 与 Android 前端编译通过；生成的 Android manifest �
 94 项测试全部通过，包括导出版本 / AppID / 编译器不匹配时拒绝构建、非法模块名拒绝，以及连续构建资源隔离，避免删除的文件残留。PowerShell 语法检查通过，HBuilderX 正式资源重新导出与 Gradle Release 构建成功（包括 lint）。保留官方 SDK 的 Jetifier / Gradle API 弃用提示，当前固定版本可构建；没有使用 Gradle 10。
 
 最终本地 APK 已通过 ADB `install -r` 从原 0.8.1 覆盖安装，系统返回 Success；包名和原签名一致，未卸载、未清空数据。正式进程 27505 正常启动并在验收后保持。用户确认「金额一致，分类切换正常，显示 0.8.2」。本轮真机验收覆盖正式包的账本保留、分类切换和版本显示；自动发布的最终附件与匿名校验结果随后记录。
+
+在 Windows 默认 PowerShell 实际执行 `scripts/pack-android-offline.ps1 -Publish` 全流程成功：已推送源码 `48a2fc1a1d2b384ef77c6eb79c4d3ac915ee094b` 预检、重新导出正式资源、Gradle Release 构建与 lint、原签名 / 包名 / 版本验证、两个附件上传、服务端大小与 SHA-256 核对、稳定 Latest 发布及匿名完整下载验证均通过。正式 [v0.8.2](https://github.com/Hwayin/mhxy-jsq/releases/tag/v0.8.2) 不是草稿或 Pre-release，APK 为 83,781,969 字节，SHA-256 `07f344443a7cd92b485dd25392ccad7342d71858c53537fa1358bba8419000a0`。
+
+只读取得手机已验收的 APK 并与匿名下载包逐文件比较：业务字节码、原生库、资源等内容摘要一致；资源 manifest 仅原生模块 JSON 键顺序不同，配置语义一致。APK 整体摘要因重新构建的 ZIP 元信息及签名变化而不同。手机没有再次安装或修改账本。后续 0.8.1 用户可在线升级；已验收手机当前即为 0.8.2，因此本轮未把同版本描述为再次在线升级。
