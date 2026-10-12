@@ -173,4 +173,6 @@ HBuilderX 5.26 Web 与 Android 前端编译通过；生成的 Android manifest �
 
 为保留账本并完成真实在线升级，先从 0.7.0 提交 `7e26eb5` 导出独立 0.7.1 / 701 修复包，仅校正更新识别与打包身份，再发布 0.8.0 / 800 快速录入作为在线更新目标。0.7.1 云构建成功（ticket `fd761ab0-c5ef-11f1-8ef7-5ff0e0edb706`），真实 APK 版本/包名/签名与 SHA-256 校验通过；用户已确认手动覆盖安装后显示 0.7.1，原账本金额一致。0.8.0 完成 HBuilderX Android 编译并提交云端（ticket `044c07b0-c5f1-11f1-87e0-456436f0c242`）。正式更新目标的 APK 核验、GitHub 发布及手机在线验收结果随后记录。
 
-0.8.0 云构建成功，实际 APK 版本 800、包名 `uni.app.UNIA9783A2`、云端证书指纹与原 0.7.0 一致。发布脚本生成两项附件，GitHub 先暂存草稿并核对附件大小和服务端 SHA-256，再发布 [v0.8.0](https://github.com/Hwayin/mhxy-jsq/releases/tag/v0.8.0) 为稳定 Latest，对应已推送源码 `6464e93fe904eeafaf65d497f7bbbd69cf067a6b`。实际匿名访问 `releases/latest/download/update.json` 并完整下载其 APK，大小 38,830,990 字节、SHA-256 `8eabda23a22ff01d1d47f3546196271656ceca70f4e69b9b74b286065f2218e0` 与更新描述一致。手机 0.7.1 → 0.8.0 的下载/安装及账本核对由用户进行，等待结果。
+0.8.0 云构建成功，实际 APK 版本 800、包名 `uni.app.UNIA9783A2`、云端证书指纹与原 0.7.0 一致。发布脚本生成两项附件，GitHub 先暂存草稿并核对附件大小和服务端 SHA-256，再发布 [v0.8.0](https://github.com/Hwayin/mhxy-jsq/releases/tag/v0.8.0) 为稳定 Latest，对应已推送源码 `6464e93fe904eeafaf65d497f7bbbd69cf067a6b`。实际匿名访问 `releases/latest/download/update.json` 并完整下载其 APK，大小 38,830,990 字节、SHA-256 `8eabda23a22ff01d1d47f3546196271656ceca70f4e69b9b74b286065f2218e0` 与更新描述一致。
+
+用户已完成手机 **0.7.1 → 0.8.0 在线升级**，确认新版显示 0.8.0、原账本金额一致且角色页出现「快速录入」。本轮云打包、GitHub 发布、应用内检查/下载/校验、系统覆盖安装和账本保留流程已由实际操作验证。快速录入连续保存、草稿和分类切换已通过隔离页面测试；本轮用户反馈确认入口可见，未据此声称全部录入操作已做真机验收。
