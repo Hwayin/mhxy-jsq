@@ -24,6 +24,14 @@ test('离线打包拒绝旧版本、错 AppID、不同编译器与缺失原生�
   assert.throws(() => offlineResourcePlan(manifest, { ...identity, appId: '__UNI__OTHER' }, exported))
 })
 
+test('5.26 导出仅标记 uni-prompt 时仍打入独立菜单与确认弹窗桥接库', () => {
+  const resource = { ...exported, 'app-android': { distribute: { modules: { 'uni-prompt': {} } } } }
+  const plan = offlineResourcePlan(manifest, identity, resource)
+  for (const name of ['uni-prompt', 'uni-dialogPage', 'uni-actionSheet', 'uni-modal']) {
+    assert.equal(plan.libraries.filter(file => file === name + '-release.aar').length, 1)
+  }
+})
+
 test('连续构建使用独立资源快照，已删除的物品/脚本不会进入下一安装包', async () => {
   const temp = await mkdtemp(path.join(os.tmpdir(), 'mhxy-offline-test-'))
   try {

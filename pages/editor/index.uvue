@@ -52,7 +52,7 @@
     </view>
     <text v-if="error" class="error editor-error">{{ error }}</text>
     <view v-if="!fatal" class="action-dock editor-dock" :style="{ paddingBottom: dockPadding }"><text v-if="equipmentWizard && step > 0" class="link previous-step" @click="previousStep">上一步</text><button class="primary dock-button editor-submit" :disabled="saving || (kind === 'assets' && form.category === 'equipment' && equipmentSetBlocked)" @click="submitStep">{{ saving ? '保存中…' : equipmentWizard && step < 2 ? '下一步：' + stepNames[step + 1] : '保存记录' }}</button></view>
-    <AttributePicker v-if="activeChoice" :title="activeChoice?.label || ''" :options="activeChoice?.options || []" :values="choiceValues(activeChoice?.key || '')" :multiple="activeChoice?.multiple || false" :allowCustom="activeChoice?.allowCustom || false" :show-item-icons="activeChoice?.key === 'itemId'" @close="activeChoice = null" @confirm="applyChoice" />
+    <AttributePicker v-if="activeChoice" :title="activeChoice?.label || ''" :options="activeChoice?.options || []" :values="choiceValues(activeChoice?.key || '')" :multiple="activeChoice?.multiple || false" :allowCustom="activeChoice?.allowCustom || false" :allow-clear="activeChoice?.key !== 'roleSchool'" :show-item-icons="activeChoice?.key === 'itemId'" @close="activeChoice = null" @confirm="applyChoice" />
   </view>
 </template>
 <script setup>
@@ -205,11 +205,12 @@ const equipmentFields = computed(() => {
   }
   return fields
 })
-function choiceValues(key: string): string[] { if (key === 'roleRace') return form.race ? [form.race] : []; if (key.startsWith('green:')) { const row = greenRows.value.find(r => r.id === key.slice(6)); return row?.kind ? [row.kind] : [] }; if (key === 'itemId') return [attrs.itemId || '__generic__']; const value = attrs[key]; return Array.isArray(value) ? value.slice() : value ? [String(value)] : [] }
+function choiceValues(key: string): string[] { if (key === 'roleSchool') return form.school ? [form.school] : []; if (key === 'roleRace') return form.race ? [form.race] : []; if (key.startsWith('green:')) { const row = greenRows.value.find(r => r.id === key.slice(6)); return row?.kind ? [row.kind] : [] }; if (key === 'itemId') return [attrs.itemId || '__generic__']; const value = attrs[key]; return Array.isArray(value) ? value.slice() : value ? [String(value)] : [] }
 function choiceValue(field: EquipmentField): string { return choiceValues(field.key).map(v => field.options.find(o => o.value === v)?.label || v).join(' / ') }
 function openChoice(field: EquipmentField) { activeChoice.value = field }
 function applyChoice(values: string[]) {
   if (!activeChoice.value) return
+  if (activeChoice.value.key === 'roleSchool') { if (values[0]) form.school = values[0]; activeChoice.value = null; return }
   if (activeChoice.value.key === 'roleRace') { form.race = values[0] || ''; activeChoice.value = null; return }
   if (activeChoice.value.key.startsWith('green:')) { const row = greenRows.value.find(r => r.id === activeChoice.value?.key.slice(6)); if (row) row.kind = values[0] || ''; activeChoice.value = null; return }
   if (activeChoice.value.key === 'itemId') {
@@ -331,11 +332,7 @@ onLoad(options => {
   } catch (e) { fatal.value = errorMessage(e) }
 })
 function chooseSchool() {
-  // 每组最多 5 项，兼容原生 actionSheet 的菜单项数限制。
-  uni.showActionSheet({ itemList: ['大唐官府～天宫', '龙宫～魔王寨', '狮驼岭～无底洞', '花果山～其他'], success: first => {
-    const list = SCHOOLS.slice(first.tapIndex * 5, first.tapIndex * 5 + 5)
-    uni.showActionSheet({ itemList: list, success: second => { form.school = list[second.tapIndex] } })
-  } })
+  openChoice(choiceField('roleSchool', '选择门派', choices(SCHOOLS), false, false))
 }
 function chooseCategory() { uni.showActionSheet({ itemList: CATEGORIES.map(c => c.label), success: res => { form.category = CATEGORIES[res.tapIndex].key; form.subtype = form.category === 'equipment' ? 'gear' : ''; if (!canInclude.value) form.included = false } }) }
 function chooseSubtype() {

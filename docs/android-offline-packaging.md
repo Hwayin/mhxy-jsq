@@ -25,6 +25,8 @@
 
 脚本依次导出 HBuilderX 正式资源、验证 AppID / 版本 / 编译器、按实际使用的 API 配置原生库、生成独立资源快照、构建 Release APK，再核验实际包名、版本、原签名及 SHA-256。
 
+5.26 的导出清单把菜单和确认弹窗标记为 `uni-prompt`，但 Vapor 运行时还调用独立的 `uni-actionSheet`、`uni-modal` 桥接模块。从 0.8.3 起，脚本明确打入这两个官方 AAR 并由自动注册插件注册，避免仅照导出清单复制 `uni-prompt` 导致原生弹窗无响应。文件系统模块同时按官方依赖补齐 Brotli 解码库。
+
 产物：`android-offline/app/build/outputs/apk/release/app-release.apk`。校验后的发布附件位于 `unpackage/update-release/v<版本>/`。正常构建会重新导出资源。`-SkipExport` 只用于本机排查已有导出资源；发布时禁止使用，避免旧资源冒充新源码。
 
 HBuilderX 升级后需更新匹配的 SDK / 工具版本，当前脚本会拒绝其他编译器版本。原生工程使用 Android 6.0+、ARM 32 / 64 位，不包含模拟器架构。

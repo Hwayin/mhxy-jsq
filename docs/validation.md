@@ -222,3 +222,17 @@ HBuilderX 5.26 Web 与 Android 前端编译通过；生成的 Android manifest �
 在 Windows 默认 PowerShell 实际执行 `scripts/pack-android-offline.ps1 -Publish` 全流程成功：已推送源码 `48a2fc1a1d2b384ef77c6eb79c4d3ac915ee094b` 预检、重新导出正式资源、Gradle Release 构建与 lint、原签名 / 包名 / 版本验证、两个附件上传、服务端大小与 SHA-256 核对、稳定 Latest 发布及匿名完整下载验证均通过。正式 [v0.8.2](https://github.com/Hwayin/mhxy-jsq/releases/tag/v0.8.2) 不是草稿或 Pre-release，APK 为 83,781,969 字节，SHA-256 `07f344443a7cd92b485dd25392ccad7342d71858c53537fa1358bba8419000a0`。
 
 只读取得手机已验收的 APK 并与匿名下载包逐文件比较：业务字节码、原生库、资源等内容摘要一致；资源 manifest 仅原生模块 JSON 键顺序不同，配置语义一致。APK 整体摘要因重新构建的 ZIP 元信息及签名变化而不同。手机没有再次安装或修改账本。后续 0.8.1 用户可在线升级；已验收手机当前即为 0.8.2，因此本轮未把同版本描述为再次在线升级。
+
+## 门派选择与退出确认失效修复 v0.8.3（2026-10-12）
+
+用户在 0.8.2 新建角色点击「门派 → 选择」完全没有响应，并补充最后一页的退出确认也失效。检查已验收的 0.8.2 APK DEX：没有 `DCloudUniActionSheet`、`DCloudUniModal` 原生实现。匹配版本官方 SDK 的框架分别通过 `_uni-actionSheet`、`_uni-modal` 调用桥接方法，但 5.26 导出清单仅标记 `uni-prompt`，之前本地打包配置漏掉两个独立 AAR。手机已重新连接并由用户复现；只读日志没有输出对应异常，不将静默视为正常。
+
+本地资源计划补齐官方 `uni-actionSheet-release.aar` 与 `uni-modal-release.aar`。Gradle 自动生成的注册入口已包含两个模块的组件 / 方法注册；文件系统按官方配置补齐 `org.brotli:dec:0.1.2` 依赖。退出生命周期和仅确认才退出的规则保持，修复在原生打包层，不绕过确认直接退出。
+
+门派选择改用现有页面内选择器，全部门派可滚动、可搜索，打开时标记当前门派；必填门派隐藏清空按钮，取消保留原值和其他输入，可选种族与装备仍支持清空。新建和编辑均把选择结果写入角色表单，不误写资产属性。
+
+95 项测试通过，新增模拟 5.26 仅导出 `uni-prompt` 时仍包含两个桥接库的回归；原退出确认的取消、去重、确认退出及失败后释放状态测试通过。Web 构建通过；隔离 Edge 390px / 320px 验证全部门派、末项滚动选择、搜索和无结果、当前值、取消、新建保存、编辑保存、门派草稿保留 / 恢复与原资产不变。原角色数据和用户浏览器数据未修改。版本 0.8.3 / 803，正式 APK 真机弹窗验收与发布结果随后记录。
+
+依据：[DCloud 独立菜单 / 弹窗模块配置](https://doc.dcloud.net.cn/uni-app-x/native/modules/android/others.html)、[操作菜单使用 dialogPage 的说明](https://doc.dcloud.net.cn/uni-app-x/api/action-sheet.html)。
+
+Windows 默认 PowerShell 完成 0.8.3 正式资源导出、本地 Release 构建与 lint，原包名 / 版本 / 云端签名校验通过。APK DEX 已确认包含两个独立弹窗实现。经用户已授权的 USB 连接从 0.8.2 使用 `install -r` 覆盖安装成功，未卸载或清空数据，进程 23256 正常启动。用户在新建角色选择门派后放弃修改、打开账号菜单、最后一页返回并点击「继续使用」，确认「三项正常，金额一致」。本轮未要求用户新增实际角色或修改成本；发布结果随后记录。

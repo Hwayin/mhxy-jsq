@@ -1,7 +1,9 @@
 import { cp, mkdir, mkdtemp } from 'node:fs/promises'
 import path from 'node:path'
 
-const foundation = ['app-common','app-runtime','breakpad-build','uts-runtime','ext-component','uni-dialogPage','uni-event','uni-crash','uni-getElementById','uni-pullDownRefresh','uni-storage','uni-exit','uni-theme','uni-getAppBaseInfo','uni-getDeviceInfo','uni-getSystemInfo','uni-getAccessibilityInfo','uni-getAppAuthorizeSetting','uni-getSystemSetting','uni-openAppAuthorizeSetting','uni-prompt','uni-rpx2px','uni-secure-network']
+// HBuilderX 5.26 exports showModal/showActionSheet as uni-prompt, but Vapor
+// resolves these APIs through separate native bridge modules at runtime.
+const foundation = ['app-common','app-runtime','breakpad-build','uts-runtime','ext-component','uni-dialogPage','uni-event','uni-crash','uni-getElementById','uni-pullDownRefresh','uni-storage','uni-exit','uni-theme','uni-getAppBaseInfo','uni-getDeviceInfo','uni-getSystemInfo','uni-getAccessibilityInfo','uni-getAppAuthorizeSetting','uni-getSystemSetting','uni-openAppAuthorizeSetting','uni-prompt','uni-actionSheet','uni-modal','uni-rpx2px','uni-secure-network']
 
 export function offlineResourcePlan(manifest, identity, exported) {
   if (!/^__UNI__[A-Z0-9]+$/.test(manifest.appid) || identity.appId !== manifest.appid || exported.id !== manifest.appid

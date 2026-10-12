@@ -8,7 +8,7 @@
       <text v-if="groups.length > 1" class="muted group-hint">分类 · 左右滑动选择</text>
       <scroll-view v-if="groups.length > 1" direction="horizontal" :show-scrollbar="false" class="choice-groups"><text v-for="item in groups" :key="item" :class="['choice-group', group === item ? 'choice-group-active' : '']" @click="group = item">{{ item }}</text></scroll-view>
       <scroll-view direction="vertical" class="choice-list">
-        <view class="choice-row" @click="clear"><text class="body">未配置 / 清空</text><text v-if="!draft.length" class="link">✓</text></view>
+        <view v-if="allowClear !== false" class="choice-row" @click="clear"><text class="body">未配置 / 清空</text><text v-if="!draft.length" class="link">✓</text></view>
         <view v-for="item in filtered" :key="item.group + item.value" :class="['choice-row', draft.includes(item.value) ? 'choice-selected' : '']" @click="toggle(item.value)"><ItemIcon v-if="showItemIcons" :item-id="item.value" :item-name="item.label" label="物" :small="true" /><view class="choice-caption"><text class="body">{{ item.label }}</text><text v-if="item.group" class="muted">{{ item.group }}</text></view><text class="link">{{ draft.includes(item.value) ? '✓' : multiple ? '＋' : '›' }}</text></view>
         <text v-if="!filtered.length" class="muted choice-empty">没有找到匹配选项</text>
       </scroll-view>
@@ -23,7 +23,7 @@ import ItemIcon from './item-icon.uvue'
 import { safeBottomPadding } from '../lib/ui-layout.uts'
 const panelPadding = ref(safeBottomPadding(24))
 onResize(() => { panelPadding.value = safeBottomPadding(24) })
-const props = defineProps<{ title: string; options: EquipmentChoice[]; values: string[]; multiple: boolean; allowCustom: boolean; showItemIcons?: boolean }>()
+const props = defineProps<{ title: string; options: EquipmentChoice[]; values: string[]; multiple: boolean; allowCustom: boolean; showItemIcons?: boolean; allowClear?: boolean }>()
 const emit = defineEmits(['close', 'confirm'])
 const query = ref('')
 const group = ref('全部')
