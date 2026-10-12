@@ -176,3 +176,11 @@ HBuilderX 5.26 Web 与 Android 前端编译通过；生成的 Android manifest �
 0.8.0 云构建成功，实际 APK 版本 800、包名 `uni.app.UNIA9783A2`、云端证书指纹与原 0.7.0 一致。发布脚本生成两项附件，GitHub 先暂存草稿并核对附件大小和服务端 SHA-256，再发布 [v0.8.0](https://github.com/Hwayin/mhxy-jsq/releases/tag/v0.8.0) 为稳定 Latest，对应已推送源码 `6464e93fe904eeafaf65d497f7bbbd69cf067a6b`。实际匿名访问 `releases/latest/download/update.json` 并完整下载其 APK，大小 38,830,990 字节、SHA-256 `8eabda23a22ff01d1d47f3546196271656ceca70f4e69b9b74b286065f2218e0` 与更新描述一致。
 
 用户已完成手机 **0.7.1 → 0.8.0 在线升级**，确认新版显示 0.8.0、原账本金额一致且角色页出现「快速录入」。本轮云打包、GitHub 发布、应用内检查/下载/校验、系统覆盖安装和账本保留流程已由实际操作验证。快速录入连续保存、草稿和分类切换已通过隔离页面测试；本轮用户反馈确认入口可见，未据此声称全部录入操作已做真机验收。
+
+## 云打包后自动发布脚本（2026-10-12）
+
+`scripts/pack-android.ps1 -Submit -Publish` 接入自动发布：预检版本、仓库权限及已提交/推送源码，锁定提交 SHA，异步提交并保存明确 ticket，等待该云任务完成、下载/验证 APK，生成元数据，上传同源码草稿的两个附件，核对 GitHub 大小与 SHA-256 后发布 Latest，再做匿名完整下载验证。已有任务/本机 APK 可用 `scripts/publish-apk-update.ps1` 单独处理，`-DryRun` 只读取 GitHub 与暂存本机附件。
+
+86 项测试通过，新增发布流程测试覆盖云任务失败/超时/身份错误、网络短暂失败重试、版本回退、预演无 GitHub 写入、上传中断后恢复草稿、未知草稿拒绝、附件缺失/大小/摘要错误阻止 Latest、同包重复运行、同版本不同包拒绝、正式包升级为 Latest、上传期间新版出现以及发布后匿名验证失败的重跑。PowerShell 语法检查通过，并修复默认 Windows PowerShell 对无 BOM 中文脚本的解析问题，调用本机工具时按 UTF-8 处理输出。
+
+使用真实已完成任务 `044c07b0-c5f1-11f1-87e0-456436f0c242`，在 Windows 默认 PowerShell 完成 `publish-apk-update.ps1 -Ticket ... -DryRun`：云状态 JSON 读取、APK 完整下载、实际包名/版本/证书/SHA-256 核验和已发布包判断成功。真实执行 `-Submit -Publish` 的预检确认当前 0.8.0 / 800 不高于 Latest，会在云提交前终止。现有 v0.8.0 的发布日期、两项附件及摘要保持原值；本轮没有创建新 APK 或新 Release，首次全自动正式发布留给下一次递增版本。草稿上传与 Latest 切换的失败分支通过模拟 GitHub 流程验证，未据此声称新版本已实际自动发布。
