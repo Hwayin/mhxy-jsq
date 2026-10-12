@@ -1,4 +1,4 @@
-param(
+﻿param(
   [switch]$Submit,
   [switch]$Async,
   [switch]$Json,
@@ -17,6 +17,8 @@ $taskCli = Join-Path $HBuilderXPath 'cli.exe'
 $taskKeytool = Join-Path $HBuilderXPath 'plugins\amazon-corretto\bin\keytool.exe'
 if (!(Test-Path -LiteralPath $taskCli) -or !(Test-Path -LiteralPath $taskKeytool)) { throw 'HBuilderX 或 Java 签名工具不存在，请指定安装目录。' }
 $env:ANDROID_KEYTOOL = $taskKeytool
+$taskPreviousEncoding = [Console]::OutputEncoding
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
 Push-Location -LiteralPath $taskReleaseRoot
 try {
   if ($Publish) {
@@ -70,4 +72,4 @@ try {
     if ($Notes) { $taskPublishArgs.Notes = $Notes }
     & (Join-Path $PSScriptRoot 'publish-apk-update.ps1') @taskPublishArgs
   }
-} finally { Pop-Location }
+} finally { Pop-Location; [Console]::OutputEncoding = $taskPreviousEncoding }

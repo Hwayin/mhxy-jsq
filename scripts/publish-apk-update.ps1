@@ -1,4 +1,4 @@
-param(
+﻿param(
   [string]$Ticket,
   [string]$Apk,
   [string]$Notes,
@@ -15,5 +15,9 @@ if ($Apk) { $taskPublishArgs += @('--apk', $Apk) }
 if ($Notes) { $taskPublishArgs += @('--notes', $Notes) }
 if ($SourceSha) { $taskPublishArgs += @('--source-sha', $SourceSha) }
 if ($DryRun) { $taskPublishArgs += '--dry-run' }
-& node @taskPublishArgs
-if ($LASTEXITCODE -ne 0) { throw 'APK 自动发布未完成，请按上方错误处理后重试。' }
+$taskPreviousEncoding = [Console]::OutputEncoding
+try {
+  [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+  & node @taskPublishArgs
+  if ($LASTEXITCODE -ne 0) { throw 'APK 自动发布未完成，请按上方错误处理后重试。' }
+} finally { [Console]::OutputEncoding = $taskPreviousEncoding }
