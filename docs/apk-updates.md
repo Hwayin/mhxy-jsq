@@ -8,6 +8,49 @@
 
 用户已确认通过 App 内更新完成 **0.7.1 → 0.8.0**：版本正确、原账本金额一致，角色页可见「快速录入」。本轮在线更新演练已完成，后续保持当前包名及云端证书，直接通过应用内更新升级。
 
+## 云打包完成后自动发布（推荐）
+
+先递增版本（下一次例如 `manifest.json` 中 0.9.0 / 900，同时同步 `package.json`），提交并推送本次代码。保持 HBuilderX 已打开并登录，GitHub CLI 已通过 `gh auth login` 登录且拥有仓库发布权限。
+
+然后在项目目录只运行：
+
+```powershell
+.\scripts\pack-android.ps1 -Submit -Publish
+```
+
+脚本会检查新版本、已提交且已推送的源码与仓库权限，提交云打包并记录 ticket，等待该任务完成，下载 APK，验证实际版本/包名/原证书，生成 `update.json`，创建 GitHub Release 草稿，上传两个附件并校验服务器大小和 SHA-256，最后正式发布为 **Latest**，再通过匿名地址完整下载验证。运行过程中不修改源码版本、不自动提交代码。
+
+默认使用 `release/notes-v<版本>.md`（存在时）作为说明，也可以指定说明文件：
+
+```powershell
+.\scripts\pack-android.ps1 -Submit -Publish -Notes "release/notes-v0.9.0.md"
+# 默认最多等云端 40 分钟，每 20 秒查询一次；可调整。
+.\scripts\pack-android.ps1 -Submit -Publish -TimeoutMinutes 60 -PollSeconds 30
+```
+
+运行时保留终端和 HBuilderX。云队列超时、下载或上传中断后，使用记录的任务继续：
+
+```powershell
+# 读取本项目脚本记录的最近一次任务，继续等待/发布。
+.\scripts\publish-apk-update.ps1
+# 指定 HBuilderX 返回的 ticket；适合手动窗口打包或继续指定任务。
+.\scripts\publish-apk-update.ps1 -Ticket "云打包ticket"
+# 已经在电脑下载了 APK 时，直接验证并发布。
+.\scripts\publish-apk-update.ps1 -Apk "D:\下载\新版.apk"
+```
+
+手动在 HBuilderX 菜单中打包时，需用 ticket 或已下载的 APK 调用发布脚本；推荐上面的 `-Submit -Publish` 一条命令完成提交与发布。
+
+先检查发布计划而不写 GitHub：
+
+```powershell
+.\scripts\publish-apk-update.ps1 -Apk "D:\下载\新版.apk" -DryRun
+```
+
+预演会读取 GitHub 并校验/暂存本机附件，不创建 Release、不上传、不更改 Latest。正式运行遇到同版本同 APK 已发布时仅复核，不覆盖附件；若已发布新版尚非 Latest，则核验后设置 Latest。同版本不同 APK、版本回退、云任务失败、签名不一致、等待期间源码改变或附件校验失败都会停止。上传失败的同源码草稿可重跑补齐；正式发布后匿名验证断网，重跑会继续核验该已发布包。
+
+当前 0.8.0 已发布，`-Submit -Publish` 会要求先升版本，避免重复云构建。脚本记录保存在忽略的 `.local/android-cloud-last-task.json`，APK 与发布附件保存在 `unpackage/update-release/v<版本>/`，GitHub 凭据由 `gh` 管理。
+
 ## 本轮 0.7.0 → 0.8.0 演练
 
 电脑上先生成并云打包 0.7.1 修复包：

@@ -44,6 +44,14 @@
 .\scripts\pack-android.ps1 -Submit
 ```
 
+需要在云打包完成后自动上传 GitHub 并设为 Latest，先升版本、提交并推送源码，然后执行：
+
+```powershell
+.\scripts\pack-android.ps1 -Submit -Publish
+```
+
+它会强制使用异步 JSON 提交以取得明确 ticket，并等待同一任务、下载和核验 APK、上传两项附件并发布 Latest。断网后可用 `.\scripts\publish-apk-update.ps1` 继续最近记录的任务；详细说明与预演命令见 [APK 在线更新](apk-updates.md)。
+
 `-Submit` 会调用 HBuilderX 官方 CLI，将项目编译资源提交至 DCloud 云打包，沿用该 AppID 的云端证书。不会开启广告、自定义调试基座或 SourceMap。CLI 要求已启动 HBuilderX 并登录；成功后返回下载信息，也可在 IDE「发行 → 查看云打包状态」查看结果。加 `-Async -Json` 可在提交后返回任务 ticket，再用 `pack status --ticket` 查询。
 
 若安装目录不同，可以加 `-HBuilderXPath '你的 HBuilderX 安装目录'`。命令行调用的是已安装的 HBuilderX，不需要安装 Gradle 或 Android Studio。
