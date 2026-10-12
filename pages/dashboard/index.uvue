@@ -1,0 +1,79 @@
+<template>
+  <view class="page">
+    <view class="between"><view><text class="eyebrow">梦幻多开账本</text><text class="title">成本总览</text></view><image class="brand-mark" src="/static/app-icons/jade-ledger-v1-96.png" mode="aspectFit" /></view>
+    <view v-if="error" class="notice"><text class="error">{{ error }}</text><text class="link" @click="openBackup">前往数据恢复 →</text></view>
+    <view v-else>
+      <view class="filter-row">
+        <text :class="['chip', !group ? 'chip-active' : '']" @click="group = ''">全部账号</text>
+        <text v-for="name in groups" :key="name" :class="['chip', group === name ? 'chip-active' : '']" @click="group = name">{{ name }}</text>
+      </view>
+      <view class="hero">
+        <image class="hero-cloud" src="/static/ui/cloud.png" mode="aspectFit" />
+        <text class="hero-label">{{ group || '全部账号' }} · 累计投入</text>
+        <text class="hero-money">{{ money(summary.total) }}</text>
+        <text class="hero-note">{{ summary.accountCount }} 个账号 · {{ summary.roleCount }} 个角色 · {{ summary.assetCount }} 笔明细</text>
+        <view class="hero-bottom"><text class="hero-label">单角色平均投入</text><text class="hero-label">{{ money(summary.average) }}</text></view>
+      </view>
+      <view v-if="summary.roleCount === 0" class="card empty">
+        <text class="section-title">从第一个账号开始</text>
+        <text class="subtitle">先添加账号，再录入角色和资产。</text>
+        <button class="primary" @click="addAccount">＋ 添加账号</button>
+        <text class="link" @click="openBackup">也可以在备份页载入五开示例 →</text>
+      </view>
+      <view class="card">
+        <text class="section-title">投入构成</text>
+        <view class="distribution"><view v-for="item in positiveBreakdown" :key="item.key" class="distribution-part" :style="{ flex: item.cents, backgroundColor: item.color }"></view></view>
+        <view v-for="item in breakdown" :key="item.key" class="cost-row">
+          <view class="legend"><view class="legend-dot" :style="{ backgroundColor: item.color }"></view><text class="body">{{ item.label }}</text></view><text class="money breakdown-money">{{ money(item.cents) }}</text><text class="cost-percentage">{{ percentage(item.cents) }}%</text>
+        </view>
+        <text v-if="summary.includedCount" class="muted breakdown-note">{{ summary.includedCount }} 笔随号资产已含在购号价中，不重复计入。</text>
+      </view>
+      <view v-if="summary.ranking.length" class="card">
+        <view class="between"><text class="section-title">角色投入排行</text><text class="link" @click="openAccounts">管理账号 →</text></view>
+        <view v-for="(role, index) in summary.ranking" :key="role.id" class="rank-row" @click="openRole(role.id)">
+          <text class="rank-index">{{ index + 1 }}</text>
+          <view class="grow"><text class="body">{{ role.name }}</text><text class="muted">{{ role.level }}级 · {{ role.school }} · {{ role.server }}</text></view>
+          <text class="money">{{ money(role.total) }}</text>
+        </view>
+      </view>
+      <text class="footer-note">本地保存 · 人民币计价 · 累计投入</text>
+    </view>
+    <view class="spacer"></view>
+  </view>
+</template>
+<script setup>
+import { emptyLedger, summarize, money, errorMessage } from '../../lib/ledger.uts'
+import { loadLedger } from '../../lib/storage.uts'
+const data = ref(emptyLedger())
+const group = ref('')
+const error = ref('')
+const groups = computed(() => [...new Set(data.value.accounts.map(a => a.group).filter(Boolean))])
+const summary = computed(() => summarize(data.value, group.value))
+const breakdown = computed(() => [{ key: 'purchase', label: '起号 / 购号', cents: summary.value.purchase, color: '#9a86c8' }, ...summary.value.categories.map(item => ({ ...item, label: item.key === 'equipment' ? '装备' : item.key === 'other' ? '其他' : item.label }))])
+const positiveBreakdown = computed(() => breakdown.value.filter(item => item.cents > 0))
+function percentage(value: number) { return summary.value.total ? Math.round(value / summary.value.total * 1000) / 10 : 0 }
+onPageShow(() => {
+  try { data.value = loadLedger(); error.value = ''; if (!groups.value.includes(group.value)) group.value = '' }
+  catch (e) { error.value = errorMessage(e) }
+})
+function addAccount() { uni.navigateTo({ url: '/pages/editor/index?kind=accounts' }) }
+function openRole(id: string) { uni.navigateTo({ url: '/pages/role/index?id=' + encodeURIComponent(id) }) }
+function openAccounts() { uni.switchTab({ url: '/pages/accounts/index' }) }
+function openBackup() { uni.switchTab({ url: '/pages/backup/index' }) }
+</script>
+<style>
+.brand-mark { width: 84rpx; height: 84rpx; border-radius: 24rpx; }
+.filter-row { flex-direction: row; flex-wrap: wrap; margin-top: 14rpx; }
+.hero-bottom { flex-direction: row; justify-content: space-between; margin-top: 24rpx; padding-top: 22rpx; border-top-width: 1rpx; border-top-color: #4e8c78; }
+.distribution { flex-direction: row; height: 24rpx; border-radius: 12rpx; overflow: hidden; background-color: #e8ebe2; margin-top: 24rpx; margin-bottom: 16rpx; }
+.distribution-part { height: 24rpx; }
+.cost-row { flex-direction: row; align-items: center; padding: 14rpx 0; }
+.legend { flex: 1; flex-direction: row; align-items: center; }
+.legend-dot { width: 16rpx; height: 16rpx; border-radius: 8rpx; margin-right: 14rpx; }
+.breakdown-money { font-size: 26rpx; }
+.cost-percentage { font-size: 22rpx; color: #6d7e74; width: 92rpx; text-align: right; }
+.breakdown-note { margin-top: 14rpx; }
+.rank-row { flex-direction: row; align-items: center; padding-top: 24rpx; padding-bottom: 24rpx; border-bottom-width: 1rpx; border-bottom-color: #eceee5; }
+.rank-index { color: #78847d; font-size: 26rpx; width: 44rpx; }
+.footer-note { color: #78847d; font-size: 22rpx; text-align: center; margin-top: 32rpx; }
+</style>

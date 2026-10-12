@@ -1,0 +1,49 @@
+{
+  "name": "梦幻多开账本",
+  "appid": "__UNI__A9783A2",
+  "description": "账号、角色、装备与召唤兽的本地成本账本",
+  "versionName": "0.6.0",
+  "versionCode": "600",
+  "vueVersion": "3",
+  "uniStatistics": {
+    "enable": false
+  },
+  "uni-app-x": {
+    "vapor": true,
+    "styleIsolationVersion": "2",
+    "vapor-render-target": "bytecode"
+  },
+  "app": {
+    "defaultAppTheme": "light"
+  },
+  "app-android": {
+    "defaultAppTheme": "light",
+    "distribute": {
+      "modules": {},
+      "icons": {
+        "hdpi": "static/app-icons/jade-ledger-v1-72.png",
+        "xhdpi": "static/app-icons/jade-ledger-v1-96.png",
+        "xxhdpi": "static/app-icons/jade-ledger-v1-144.png",
+        "xxxhdpi": "static/app-icons/jade-ledger-v1-192.png"
+      },
+      "splashScreens": {
+        "default": {},
+        "background": "#f5f4ee"
+      },
+      "abiFilters": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "minSdkVersion": 23,
+      "targetSdkVersion": 36
+    }
+  },
+  "app-ios": {
+    "defaultAppTheme": "light",
+    "distribute": {
+      "modules": {},
+      "icons": {},
+      "splashScreens": {}
+    }
+  }
+}

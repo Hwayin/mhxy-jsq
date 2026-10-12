@@ -1,0 +1,86 @@
+import { assetSubtype, equipmentPosition, isEquipmentSet, subtypeLabel } from './ledger.uts'
+import type { Asset, Role } from './ledger.uts'
+import { comparisonMetrics } from './equipment-calc.uts'
+import type { AttributeMetric } from './equipment-calc.uts'
+
+export const CARD_FOCUSES = [
+  { key:'auto', label:'跟随门派' }, { key:'magic', label:'法系' },
+  { key:'physical', label:'物理' }, { key:'fixed', label:'固伤' }, { key:'support', label:'辅助 / 封系' }
+]
+// 默认展示偏好，不限制门派玩法；页面可按当前流派临时切换。
+export function schoolCardFocus(role: Role): string {
+  if (role.calculation?.fixedEnabled || ['女儿村','普陀山','阴曹地府','无底洞'].includes(role.school)) return 'fixed'
+  if (['龙宫','魔王寨','神木林','女魃墓','东海渊'].includes(role.school)) return 'magic'
+  if (['大唐官府','狮驼岭','凌波城','花果山','九黎城','天机城'].includes(role.school)) return 'physical'
+  return 'support'
+}
+export function cardFocusLabel(role: Role, focus = 'auto'): string {
+  const key = focus === 'auto' ? schoolCardFocus(role) : focus
+  return CARD_FOCUSES.find(f => f.key === key)?.label || '辅助 / 封系'
+}
+export function equipmentCardTitle(asset: Asset): string {
+  if (asset.category !== 'equipment') return asset.name
+  const a = asset.attributes
+  const name = a?.itemName || equipmentPosition(asset) || (isEquipmentSet(asset) ? '旧组合记录' : subtypeLabel(asset))
+  return (a?.level != null && assetSubtype(asset) !== 'jade' ? a.level + '级 ' : '') + name
+}
+export function equipmentCardMetrics(asset: Asset, role: Role, focus = 'auto'): AttributeMetric[] {
+  if (isEquipmentSet(asset)) return []
+  const source = comparisonMetrics(asset,role)
+  const result: AttributeMetric[] = []
+  const mode = focus === 'auto' ? schoolCardFocus(role) : focus
+  const slot = equipmentPosition(asset)
+  const gear = assetSubtype(asset) === 'gear'
+  const pushMetric = (key: string, label: string): boolean => {
+    const metric = source.find(m => m.key === key)
+    if (!metric || result.length >= 3 || result.some(m => m.key === key)) return false
+    result.push({ ...metric, label }); return true
+  }
+  const pushStat = (kind: string): boolean => {
+    let added = false
+    const rows = source.filter(m => m.key === 'base:' + kind || m.key.startsWith('addon:' + kind + ':'))
+    for (const unit of Array.from(new Set(rows.map(r => r.unit)))) {
+      const key = 'stat:' + kind + ':' + unit
+      if (result.length >= 3 || result.some(m => m.key === key)) continue
+      const values = rows.filter(r => r.unit === unit)
+      const value = values.some(r => r.value == null) ? null : values.reduce((sum,r) => sum + (r.value || 0),0)
+      result.push({key,label:kind,initial:null,bonus:null,value,unit,formula:'同属性成品值合计'}); added = true
+    }
+    return added
+  }
+  if (gear && slot === '武器') {
+    if (mode === 'magic') pushMetric('weapon:magic','法伤贡献估算')
+    if (mode === 'physical') {
+      const power = source.find(m => m.key === 'weapon:power')
+      if (power?.value != null) pushMetric('weapon:power','含力量总伤估算')
+      else pushMetric('weapon:total','综合总伤')
+    }
+  }
+  if (gear && slot === '项链') pushMetric('base:灵力','总灵力')
+  const relevant = mode === 'magic' ? ['法术伤害','法术暴击等级','法术伤害结果','魔力','灵力']
+    : mode === 'physical' ? ['伤害','物理暴击等级','穿刺等级','力量','狂暴等级']
+    : mode === 'fixed' ? ['固定伤害','敏捷','固伤暴击等级']
+    : ['治疗能力','封印命中等级','敏捷','体质']
+  if (mode === 'fixed' && (slot === '武器' || source.some(m => m.key === 'base:敏捷' || m.key.startsWith('addon:敏捷:') || m.key === 'base:伤害' || m.key.startsWith('addon:伤害:')))) {
+    pushMetric('contribution:fixed','固伤换算估算')
+    if (!role.calculation?.fixedEnabled && (role.school !== '普陀山' || slot === '武器')) {
+      if (gear) pushMetric('base:伤害','强化后伤害')
+      else pushStat('伤害')
+    }
+  }
+  for (const kind of relevant) {
+    // 武器的伤害与力量已包含在综合值；普陀非武器伤害不作为固伤关注项。
+    if (gear && slot === '武器' && mode === 'physical' && ['伤害','力量'].includes(kind)) continue
+    pushStat(kind)
+  }
+  for (const kind of ['速度','气血','防御','法术防御','抵抗封印等级','抗封印等级','抗物理暴击等级','抗法术暴击等级','抗固伤暴击等级','格挡值','气血回复效果','耐力','体质']) {
+    if (kind === '耐力' && result.some(m => m.key === 'contribution:defense')) continue
+    if (kind === '防御' && gear) {
+      const defense = source.find(m => m.key === 'contribution:defense')
+      const hasEndurance = asset.attributes?.greenAttributes?.some(r => r.kind === '耐力' && r.value !== 0)
+      if (hasEndurance && defense?.value != null && pushMetric('contribution:defense','防御贡献估算')) continue
+    }
+    pushStat(kind)
+  }
+  return result
+}

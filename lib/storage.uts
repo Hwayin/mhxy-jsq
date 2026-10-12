@@ -1,0 +1,29 @@
+import { emptyLedger, validateLedger, clone } from './ledger.uts'
+import type { Ledger } from './ledger.uts'
+const KEY = 'mhxy-ledger-v1'
+const PREVIOUS = 'mhxy-ledger-previous-v1'
+
+export function loadLedger(): Ledger {
+  const raw = uni.getStorageSync(KEY)
+  if (raw === '' || raw === null || raw === undefined) return emptyLedger()
+  try { return validateLedger(JSON.parse(raw as string) as Ledger) }
+  catch { throw new Error('本地数据读取失败，原数据已保留。请到备份页恢复上一版本或导入备份。') }
+}
+export function saveLedger(data: Ledger, allowRecovery = false): Ledger {
+  const validated = validateLedger(data)
+  const previous = uni.getStorageSync(KEY)
+  if (previous) {
+    let valid = true
+    try { validateLedger(JSON.parse(previous as string) as Ledger) }
+    catch { valid = false; if (!allowRecovery) throw new Error('当前数据损坏，请先在备份页恢复数据'); }
+    // 无效数据不覆盖可用的上一版本。
+    if (valid) uni.setStorageSync(PREVIOUS, previous)
+  }
+  uni.setStorageSync(KEY, JSON.stringify(validated))
+  return clone(validated)
+}
+export function previousLedger(): Ledger {
+  const raw = uni.getStorageSync(PREVIOUS)
+  if (!raw) throw new Error('暂时没有可恢复的上一版本')
+  return validateLedger(JSON.parse(raw as string) as Ledger)
+}

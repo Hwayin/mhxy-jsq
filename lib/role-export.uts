@@ -1,0 +1,27 @@
+import { exportRoleBackup } from './ledger.uts'
+import type { Ledger } from './ledger.uts'
+
+export async function exportRoleTestFile(data: Ledger, roleId: string): Promise<string> {
+  const backup = exportRoleBackup(data, roleId)
+  // #ifdef WEB
+  return await new Promise<string>((resolve, reject) => {
+    uni.request({
+      url: 'http://127.0.0.1:5179/api/test-data/role',
+      method: 'POST', timeout: 8000,
+      header: { 'Content-Type': 'application/json' },
+      data: { roleId, backup },
+      success: response => {
+        const result = response.data as { relativePath?: string; overwritten?: boolean; message?: string }
+        if (response.statusCode !== 200 || !result.relativePath) { reject(new Error(result.message || '测试 JSON 导出失败')); return }
+        resolve((result.overwritten ? '已覆盖：' : '已导出：') + result.relativePath)
+      },
+      fail: () => reject(new Error('本机导出服务未连接，请在项目目录运行 npm run test-data 后重试'))
+    })
+  })
+  // #endif
+  // #ifndef WEB
+  return await new Promise<string>((resolve, reject) => {
+    uni.setClipboardData({ data: backup, success: () => resolve('角色 JSON 已复制，可在备份页粘贴导入'), fail: () => reject(new Error('复制失败，请检查剪贴板权限')) })
+  })
+  // #endif
+}

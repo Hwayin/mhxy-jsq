@@ -1,0 +1,74 @@
+{
+  "pages": [
+    {
+      "path": "pages/dashboard/index",
+      "style": {
+        "navigationBarTitleText": "梦幻多开账本"
+      }
+    },
+    {
+      "path": "pages/accounts/index",
+      "style": {
+        "navigationBarTitleText": "账号与角色"
+      }
+    },
+    {
+      "path": "pages/backup/index",
+      "style": {
+        "navigationBarTitleText": "数据与备份"
+      }
+    },
+    {
+      "path": "pages/role/index",
+      "style": {
+        "navigationBarTitleText": "角色账本"
+      }
+    },
+    {
+      "path": "pages/editor/index",
+      "style": {
+        "navigationBarTitleText": "编辑记录"
+      }
+    },
+    {
+      "path": "pages/asset/index",
+      "style": {
+        "navigationBarTitleText": "装备详情"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarBackgroundColor": "#f5f4ee",
+    "backgroundColor": "#f5f4ee"
+  },
+  "tabBar": {
+    "color": "#6d7e74",
+    "selectedColor": "#287565",
+    "backgroundColor": "#fffefb",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/dashboard/index",
+        "text": "总览",
+        "iconPath": "static/ui/overview-normal.png",
+        "selectedIconPath": "static/ui/overview-active.png"
+      },
+      {
+        "pagePath": "pages/accounts/index",
+        "text": "账号",
+        "iconPath": "static/ui/accounts-normal.png",
+        "selectedIconPath": "static/ui/accounts-active.png"
+      },
+      {
+        "pagePath": "pages/backup/index",
+        "text": "备份",
+        "iconPath": "static/ui/backup-normal.png",
+        "selectedIconPath": "static/ui/backup-active.png"
+      }
+    ],
+    "height": "58px",
+    "fontSize": "12px",
+    "iconWidth": "23px"
+  }
+}

@@ -1,0 +1,457 @@
+<template>
+  <view class="page page-with-dock">
+    <text v-if="!equipmentWizard" class="title">{{ title }}</text>
+    <text v-if="!equipmentWizard" class="subtitle">{{ kind === 'assets' ? '记录实际购入成本，保留每一笔投入的细节。' : '建立清晰的账号与角色档案。' }}</text>
+    <view v-if="equipmentWizard && !fatal" class="stepper"><view v-for="(name,index) in stepNames" :key="name" :class="['step-item', step === index ? 'step-active' : '']"><text class="step-number">{{ index + 1 }}</text><text class="step-label">{{ name }}</text></view></view>
+    <text v-if="fatal" class="error">{{ fatal }}</text>
+    <view v-else class="card">
+      <view v-if="kind !== 'assets' || form.category !== 'equipment'" class="field-group"><text class="label">{{ kind === 'accounts' ? '账号别名' : kind === 'roles' ? '角色名称' : '明细名称' }} *</text><input class="field" :value="form.name" @input="form.name = $event.detail.value" @blur="form.name = $event.detail.value" maxlength="200" placeholder="请输入名称" /></view>
+      <view v-else class="row selected-item"><ItemIcon :item-id="attrs.itemId" :item-name="attrs.itemName" :label="attrs.slot || attrs.jadeKind || '装备'" /><view class="grow selected-item-copy"><text class="label">{{ attrs.itemName || '选择具体物品' }}</text><text class="muted">{{ parentName }} · {{ subtypeName }}{{ attrs.level ? ' · ' + attrs.level + '级' : '' }}</text></view></view>
+      <template v-if="kind === 'accounts'">
+        <view class="field-group"><text class="label">所属队伍</text><input class="field" :value="form.group" @input="form.group = $event.detail.value" @blur="form.group = $event.detail.value" maxlength="200" placeholder="例如：109五开队 / 129主力队" /></view>
+      </template>
+      <template v-if="kind === 'roles'">
+        <text class="muted">所属账号：{{ parentName }}</text>
+        <view class="field-group"><text class="label">服务器 *</text><input class="field" :value="form.server" @input="form.server = $event.detail.value" @blur="form.server = $event.detail.value" maxlength="200" placeholder="例如：浙江一区 · 西栅老街" /></view>
+        <view class="field-group"><text class="label">门派 *</text><view class="field between" @click="chooseSchool"><text class="body">{{ form.school }}</text><text class="link">选择 ›</text></view></view>
+        <view class="field-group"><text class="label">角色种族（装备换算）</text><view class="field between" @click="openChoice(choiceField('roleRace','角色种族',RACES.map(r => ({value:r.key,label:r.label,group:''})),false,false))"><text class="body">{{ raceName }}</text><text class="link">选择 ›</text></view></view>
+        <view class="field-group"><view class="between"><text class="label">启用固伤基础换算</text><switch :checked="rules.fixedEnabled" @change="rules.fixedEnabled = $event.detail.value" color="#287565" /></view><text class="muted">{{ fixedPreset?.condition || '当前门派无预设，启用后需填写自定义系数。' }}</text><text class="muted">只比较装备贡献，需确认对应经脉已生效。</text></view>
+        <view v-for="rate in roleRateFields" :key="rate.key" class="field-group"><text class="label">{{ rate.label }}（可校准）</text><input class="field" :value="rules[rate.key]" @input="rules[rate.key] = $event.detail.value" @blur="rules[rate.key] = $event.detail.value" type="digit" :placeholder="rate.hint" /></view>
+        <view class="field-group"><text class="label">等级</text><input class="field" :value="form.level" @input="form.level = $event.detail.value" @blur="form.level = $event.detail.value" type="number" placeholder="例如：109" /></view>
+        <view class="field-group"><text class="label">游戏角色 ID（可选）</text><input class="field" :value="form.gameId" @input="form.gameId = $event.detail.value" @blur="form.gameId = $event.detail.value" maxlength="200" placeholder="便于核对角色" /></view>
+        <view class="field-group"><text class="label">起号方式</text><view class="mode-options"><view v-for="mode in modes" :key="mode.key" :class="['mode-option', form.purchaseMode === mode.key ? 'mode-active' : '']" @click="form.purchaseMode = mode.key"><text :class="['mode-text', form.purchaseMode === mode.key ? 'mode-text-active' : '']">{{ mode.label }}</text></view></view><text class="muted">{{ purchaseHint(form.purchaseMode) }}</text></view>
+        <view v-if="form.purchaseMode !== 'self' && form.note.includes('从0起号')" class="notice"><text class="notice-text">备注提到了“从0起号”，你可以将起号方式改为“自建起号”。</text></view>
+        <view class="field-group"><text class="label">{{ form.purchaseMode === 'self' ? '起号基础投入（人民币元）' : '购号价格（人民币元）' }} *</text><input class="field" :value="form.amount" @input="form.amount = $event.detail.value" @blur="form.amount = $event.detail.value" type="digit" placeholder="0.00" /></view>
+      </template>
+      <template v-if="kind === 'assets'">
+        <text v-if="!equipmentWizard" class="muted">所属角色：{{ parentName }}</text><text v-if="equipmentWizard && step === 0" class="link category-context" @click="chooseCategory">{{ categoryLabel }} · 切换分类 ›</text>
+        <view v-if="!equipmentWizard" class="field-group"><text class="label">分类</text><view class="field between" @click="chooseCategory"><text class="body">{{ categoryLabel }}</text><text class="link">选择 ›</text></view></view>
+        <view v-if="form.category === 'equipment'" v-show="!equipmentWizard || step !== 2" class="equipment-section"><text v-show="!equipmentWizard || step === 0" class="label">装备类型</text><view v-show="!equipmentWizard || step === 0" class="mode-options"><view v-for="option in equipmentTypes" :key="option.key" :class="['mode-option', form.subtype === option.key ? 'mode-active' : '']" @click="form.subtype = option.key"><text :class="['mode-text', form.subtype === option.key ? 'mode-text-active' : '']">{{ option.label }}</text></view></view><text v-if="!form.subtype" class="muted">请选择具体装备类型和部位，再保存单件记录。</text><view :class="['equipment-fields', equipmentWizard && step === 0 ? 'identity-fields' : '']"><view v-for="field in visibleEquipmentFields" :key="field.key" :class="['field-group', 'equipment-choice', equipmentWizard && step === 0 ? 'identity-field' : '', field.key === 'itemId' ? 'identity-wide' : '']"><text class="label">{{ field.label }}</text><view class="field between" @click="openChoice(field)"><text :class="['choice-value', choiceValue(field) ? 'body' : 'muted']">{{ choiceValue(field) || '未配置' }}</text><text class="link">选择 ›</text></view></view></view><view v-show="!equipmentWizard || step === 1"><text v-if="form.subtype === 'gear'" class="link" @click="toggleExtraGem">{{ extraGemEnabled ? '移除第二种宝石' : '＋ 记录混合镶嵌' }}</text><text v-if="form.subtype === 'gear' && extraGemEnabled" class="muted">混镶填每种宝石各自占用的段数，两项之和为总锻数。</text><view class="base-section"><text class="label">基础属性（未含宝石）</text><text class="muted">装备填未镶宝石的白字（含已有熔炼）；灵饰、玉魄分别记录基础词条与附加词条。</text><view v-if="form.subtype !== 'gear'" class="field-group"><text class="label">基础属性类型</text><view class="field between" @click="baseChoices"><text class="body">{{ attrs.baseKind || '选择属性' }}</text><text class="link">选择 ›</text></view></view><view v-for="kindName in baseKinds" :key="kindName" class="field-group base-value"><text class="label">{{ kindName === '伤害' && form.subtype === 'gear' ? '初始伤害（不含命中换算）' : '初始' + kindName }}</text><input class="field" :value="baseValues[kindName]" @input="baseValues[kindName] = $event.detail.value" @blur="baseValues[kindName] = $event.detail.value" type="digit" placeholder="未录入留空；0表示已确认无加成" /></view></view><view v-if="form.subtype !== 'gear'" class="field-group"><text class="label">附加属性录入口径</text><view class="mode-options"><view :class="['mode-option',attrs.valuesStage === 'finished' ? 'mode-active' : '']" @click="attrs.valuesStage = 'finished'"><text class="body">当前成品值</text></view><view :class="['mode-option',attrs.valuesStage === 'initial' ? 'mode-active' : '']" @click="attrs.valuesStage = 'initial'"><text class="body">初始值＋强化</text></view></view><text class="muted">成品值不会再次叠加强化；玉魄填当前人物实际生效值。初始模式逐条填写每级增量，未填写时显示待计算。</text></view><view class="numeric-section"><view class="between"><text class="label">{{ form.subtype === 'gear' ? '绿字属性' : form.subtype === 'ornament' ? '灵饰附加属性' : '玉魄数值属性' }}</text><text class="muted">{{ greenRows.length }}项</text></view><text class="muted">先选择属性，再填写数值。点击＋可切换为负值。</text><view v-for="row in greenRows" :key="row.id" class="numeric-row"><view class="between"><view class="field numeric-kind" @click="chooseGreen(row.id)"><text class="body">{{ row.kind || '选择属性 ›' }}</text></view><text class="danger numeric-remove" @click="removeGreen(row.id)">删除</text></view><view class="numeric-input-row"><text class="numeric-sign" @click="row.negative = !row.negative">{{ row.negative ? '−' : '＋' }}</text><input class="field numeric-value" :value="row.value" @input="row.value = $event.detail.value" @blur="row.value = $event.detail.value" type="digit" maxlength="12" placeholder="输入数值，可填0" /><text v-if="form.subtype !== 'gear' || row.unit" class="numeric-unit" @click="row.unit = form.subtype === 'gear' ? '' : row.unit === '%' ? '' : '%'">{{ row.unit || '点' }} ↕</text><text v-else class="muted">点</text></view><view v-if="form.subtype !== 'gear' && attrs.valuesStage === 'initial'" class="field-group"><text class="label">每级强化增量（同属性单位）</text><input class="field" :value="row.perRank" @input="row.perRank = $event.detail.value" @blur="row.perRank = $event.detail.value" type="digit" placeholder="按游戏词条填写，0表示此项无强化" /></view></view><text v-if="greenRows.length < (form.subtype === 'gear' ? 5 : 12)" class="link" @click="addGreen">＋ 添加属性</text></view></view></view><view v-if="form.category !== 'equipment'" class="field-group"><text class="label">细分类型</text><view class="field between" @click="chooseSubtype"><text class="body">{{ subtypeName }}</text><text class="link">选择 ›</text></view><text v-if="suggestion && suggestion !== form.subtype" class="link" @click="form.subtype = suggestion">按名称建议：{{ suggestionName }} · 点击采用</text></view>
+        <text v-if="form.category === 'equipment' && suggestion && suggestion !== form.subtype" class="link" @click="form.subtype = suggestion">按名称建议：{{ suggestionName }} · 点击采用</text><view v-if="form.category !== 'equipment'" class="field-group"><view class="between"><text class="body">组合购入</text><switch :checked="form.purchaseKind === 'set'" color="#287565" @change="form.purchaseKind = $event.detail.value ? 'set' : 'single'" /></view><text class="muted">多件一起购买时，填写整单总价，包含内容只作说明。</text></view>
+        <view v-if="form.category !== 'equipment' && form.purchaseKind === 'set'" class="field-group"><text class="label">包含内容</text><textarea class="textarea" :value="form.contents" @input="form.contents = $event.detail.value" @blur="form.contents = $event.detail.value" maxlength="2000" placeholder="例如：召唤兽＋高连套。每行一项，不重复填写费用。" /><text class="label quantity-label">件数（可选）</text><input class="field" :value="form.quantity" @input="form.quantity = $event.detail.value" @blur="form.quantity = $event.detail.value" type="number" placeholder="数量不明确可留空" /></view>
+        <view v-if="form.category === 'equipment' && equipmentSetBlocked" class="notice"><text class="notice-text">{{ equipmentSetBlocked ? '这是旧组合记录，请逐件重新录入并核对原总价后删除旧记录。' : '装备、灵饰、上古玉魄按单件记录。每件选择具体部位，分别填写实际成本。' }}</text><text v-if="equipmentSetBlocked" class="muted">原组合：{{ form.name }} · {{ form.quantity || '未注明' }}件 · 总价 {{ form.amount }}元。{{ form.contents }}</text></view><view v-show="!equipmentWizard || step === 0" class="field-group amount-group"><text class="label">{{ form.included ? '明细参考价（人民币元，不重复计入）' : form.category !== 'equipment' && form.purchaseKind === 'set' ? '组合总价（人民币元）' : '实际投入（人民币元）' }} *</text><input class="field" :value="form.amount" @input="form.amount = $event.detail.value" @blur="form.amount = $event.detail.value" type="digit" placeholder="0.00" /></view>
+        <view v-if="canInclude" v-show="!equipmentWizard || step === 0" class="field-group"><view class="between"><text class="body">购号价已包含此资产</text><switch :checked="form.included" color="#287565" @change="form.included = $event.detail.value" /></view><text class="muted">开启后，此金额仅用于明细展示，不再叠加到总成本。</text></view>
+        <view v-if="form.category === 'equipment' && calculationPreview.metrics.length" v-show="!equipmentWizard || step === 1" class="calculation-panel"><text class="label">自动换算 · 当前角色 {{ parentName }}</text><text class="muted">基础 / 增量 / 强化后；估算项见公式。空值不按0计算。</text><view v-for="metric in calculationPreview.metrics" :key="metric.key" class="metric-row"><text class="metric-label">{{ metric.label }}</text><text class="metric-value">{{ valueText(metric.value,metric.unit) }}</text><text v-if="metric.initial != null || metric.bonus != null" class="muted">{{ valueText(metric.initial,metric.unit) }} ＋ {{ valueText(metric.bonus,metric.unit) }} → {{ valueText(metric.value,metric.unit) }}</text><text class="metric-formula">{{ metric.formula }}</text></view><text v-for="(note,index) in calculationPreview.notes" :key="index" class="notice-text">{{ note }}</text></view>
+        <view v-show="!equipmentWizard || step === 0" class="field-group"><text class="label">购入日期（可选）</text><input class="field" :value="form.date" @input="form.date = $event.detail.value" @blur="form.date = $event.detail.value" maxlength="10" placeholder="YYYY-MM-DD，例如 2026-10-08" /></view>
+        <view v-show="!equipmentWizard || step === 1" class="field-group"><text class="label">{{ form.category === 'pet' ? '召唤兽属性' : form.category === 'equipment' ? '补充数值 / 属性说明（可选）' : '投入说明' }}</text><textarea class="textarea" :value="form.detail" @input="form.detail = $event.detail.value" @blur="form.detail = $event.detail.value" maxlength="2000" :placeholder="detailPlaceholder" /></view>
+        <view v-if="form.category !== 'other'" v-show="!equipmentWizard || step === 1" class="field-group">
+          <text class="link" @click="expanded = !expanded">{{ expanded ? '收起补充属性 ↑' : '补充属性（可选） ↓' }}</text>
+          <view v-if="expanded">
+            <template v-if="form.category === 'pet'">
+              <view class="field-group"><text class="label">召唤兽类型</text><input class="field" :value="attrs.petType" @input="attrs.petType = $event.detail.value" @blur="attrs.petType = $event.detail.value" maxlength="100" placeholder="例如：全力 / 须弥 / 血宠" /></view>
+              <view class="field-group"><text class="label">主要技能</text><input class="field" :value="attrs.skills" @input="attrs.skills = $event.detail.value" @blur="attrs.skills = $event.detail.value" maxlength="500" placeholder="填写你需要比较的技能" /></view>
+              <view class="field-group"><text class="label">成长</text><input class="field" :value="attrs.growth" @input="attrs.growth = $event.detail.value" @blur="attrs.growth = $event.detail.value" type="digit" placeholder="例如：1.27" /></view>
+            </template>
+            <view class="field-group"><text class="label">关键属性 / 套装</text><input class="field" :value="attrs.effect" @input="attrs.effect = $event.detail.value" @blur="attrs.effect = $event.detail.value" maxlength="500" placeholder="例如：初灵182 / 魔力27 / 如意套 / 高连套" /></view>
+          </view>
+        </view>
+      </template>
+      <view v-show="!equipmentWizard || step === 0" class="field-group"><text class="label">备注（选填）</text><textarea class="textarea" :value="form.note" @input="form.note = $event.detail.value" @blur="form.note = $event.detail.value" maxlength="2000" placeholder="购买渠道、费用组成或其他补充信息" /></view>
+      <view v-if="equipmentWizard && step === 2" class="review-panel"><text class="section-title">确认这笔记录</text><text class="generated-title review-name">{{ generatedName }}</text><view class="between"><text class="body">{{ form.included ? '随号资产参考价' : '新增投入' }}</text><text class="review-money">¥{{ form.amount }}</text></view><text class="muted">{{ form.included ? '购号价已包含，不重复计入累计投入。' : '保存后计入角色累计投入。' }}</text><view class="review-configuration"><text class="label">最终配置</text><text class="body">{{ reviewConfiguration }}</text></view><text v-if="form.date" class="muted">购入日期：{{ form.date }}</text><text v-if="form.note" class="body review-note">备注：{{ form.note }}</text><text v-if="form.detail" class="body review-note">说明：{{ form.detail }}</text></view>
+      <text v-if="equipmentWizard && step === 0" class="muted step-hint">下一步填写属性与宝石配置。</text>
+    </view>
+    <text v-if="error" class="error editor-error">{{ error }}</text>
+    <view v-if="!fatal" class="action-dock editor-dock" :style="{ paddingBottom: dockPadding }"><text v-if="equipmentWizard && step > 0" class="link previous-step" @click="previousStep">上一步</text><button class="primary dock-button editor-submit" :disabled="saving || (kind === 'assets' && form.category === 'equipment' && equipmentSetBlocked)" @click="submitStep">{{ saving ? '保存中…' : equipmentWizard && step < 2 ? '下一步：' + stepNames[step + 1] : '保存记录' }}</button></view>
+    <AttributePicker v-if="activeChoice" :title="activeChoice?.label || ''" :options="activeChoice?.options || []" :values="choiceValues(activeChoice?.key || '')" :multiple="activeChoice?.multiple || false" :allowCustom="activeChoice?.allowCustom || false" :show-item-icons="activeChoice?.key === 'itemId'" @close="activeChoice = null" @confirm="applyChoice" />
+  </view>
+</template>
+<script setup>
+import { safeBottomPadding } from '../../lib/ui-layout.uts'
+const dockPadding = ref(safeBottomPadding())
+onResize(() => { dockPadding.value = safeBottomPadding() })
+import { CATEGORIES, SUBTYPES, PURCHASE_MODES, purchaseHint, suggestSubtype, assetSubtype, EQUIPMENT_POSITIONS, equipmentPosition, isEquipmentSet, GREEN_ATTRIBUTE_OPTIONS, equipmentName, attributeText, SCHOOLS, makeId, amountInput, toCents, putRecord, errorMessage } from '../../lib/ledger.uts'
+import type { Ledger, Account, Role, Asset, AssetAttributes, NumericAttribute } from '../../lib/ledger.uts'
+import AttributePicker from '../../components/attribute-picker.uvue'
+import ItemIcon from '../../components/item-icon.uvue'
+import { choices, ranks, GEMS, SET_EFFECTS, SPECIAL_SKILLS, SPECIAL_EFFECTS, BELL_SETS, JADE_EFFECTS, AMBUSH_SKILLS } from '../../lib/equipment-options.uts'
+import type { EquipmentChoice } from '../../lib/equipment-options.uts'
+import { EQUIPMENT_ITEMS } from '../../lib/item-catalog.uts'
+import { RACES, FIXED_PRESETS, BASE_FIELDS, equipmentCalculation, valueText } from '../../lib/equipment-calc.uts'
+import type { CalculationRules } from '../../lib/ledger.uts'
+import { loadLedger, saveLedger } from '../../lib/storage.uts'
+const step = ref(0)
+const stepNames = ['基本信息', '属性配置', '确认保存']
+const equipmentWizard = computed(() => kind.value === 'assets' && form.category === 'equipment')
+const visibleEquipmentFields = computed(() => equipmentFields.value.filter(field => !equipmentWizard.value || (step.value === 0 ? ['slot','level','jadeKind','itemId'].includes(field.key) : !['slot','level','jadeKind','itemId'].includes(field.key))))
+let initialSnapshot = ''
+let leaving = false
+let leaveDialogOpen = false
+const draftKey = computed(() => 'mhxy-editor-draft-v1:' + kind.value + ':' + (recordId.value || parent.value || 'new'))
+const kind = ref('accounts')
+const recordId = ref('')
+const parent = ref('')
+const parentName = ref('')
+const parentRole = ref<Role | null>(null)
+const extraGemEnabled = ref(false)
+const baseValues = reactive({ 伤害:'', 命中:'', 灵力:'', 防御:'', 气血:'', 魔法:'', 敏捷:'', 速度:'', 法术防御:'', 法术伤害:'', 固定伤害:'', 封印命中等级:'', 抗封印等级:'', 抵抗封印等级:'', 狂暴等级:'', 物理暴击等级:'', 法术暴击等级:'', 固伤暴击等级:'', 抗物理暴击等级:'', 抗法术暴击等级:'', 抗固伤暴击等级:'', 格挡值:'', 法术伤害结果:'', 气血回复效果:'', 穿刺等级:'', 治疗能力:'' })
+const rules = reactive({ fixedEnabled:false, fixedDamageRate:'', fixedAgilityRate:'', magicDamageRate:'', powerRate:'', enduranceRate:'' })
+const bundled = ref(false)
+const fatal = ref('')
+const error = ref('')
+const saving = ref(false)
+const modes = PURCHASE_MODES
+const expanded = ref(false)
+const legacyEquipmentSet = ref(false)
+type GreenDraft = { id: string; kind: string; value: string; negative: boolean; unit: string; perRank: string }
+const greenRows = ref<GreenDraft[]>([])
+const attrs = reactive({ extraGem: '', extraGemRank: '', valuesStage: 'finished', baseKind: '', itemId: '', itemName: '', slot: '', level: '', gem: '', gemRank: '', effect: '', petType: '', skills: '', growth: '', setEffect: '', specialSkill: '', specialEffects: [] as string[], starRank: '', bellSet: '', bellLevel: '', dustRank: '', jadeKind: '', jadeEffects: [] as string[], ambushSkills: [] as string[] })
+const form = reactive({ name: '', group: '', server: '', school: SCHOOLS[0], level: '109', gameId: '', amount: '0.00', purchaseMode: 'self', category: 'equipment', included: false, date: '', detail: '', note: '', subtype: '', purchaseKind: 'single', contents: '', quantity: '', originalName: '', race: '' })
+type EquipmentField = { key: string; label: string; options: EquipmentChoice[]; multiple: boolean; allowCustom: boolean }
+const equipmentTypes = SUBTYPES.filter(s => s.category === 'equipment')
+const roleSchool = ref('')
+const activeChoice = ref<EquipmentField | null>(null)
+function choiceField(key: string, label: string, options: EquipmentChoice[], multiple = false, allowCustom = true): EquipmentField { return { key, label, options, multiple, allowCustom } }
+const itemOptions = computed(() => {
+  const position = form.subtype === 'jade' ? attrs.jadeKind : attrs.slot
+  const rows = EQUIPMENT_ITEMS.filter(i => i.subtype === form.subtype && (!position || i.slot === position) && (!attrs.level || form.subtype === 'jade' || i.levels.includes(Number(attrs.level))))
+  return [{ value: '__generic__', label: '通用物品（按部位自动命名）', group: '通用' },
+    ...(attrs.itemId && !EQUIPMENT_ITEMS.some(i => i.id === attrs.itemId) ? [{ value: attrs.itemId, label: attrs.itemName || '已有物品', group: '已保存' }] : []),
+    ...rows.map(i => ({ value: i.id, label: i.name, group: i.kind + (i.levels.length ? ' · ' + i.levels.join('/') + '级' : '') }))]
+})
+watch(() => [form.subtype, attrs.slot, attrs.level, attrs.jadeKind], () => {
+  const item = EQUIPMENT_ITEMS.find(i => i.id === attrs.itemId)
+  if (item && (item.subtype !== form.subtype || (form.subtype === 'jade' ? attrs.jadeKind && item.slot !== attrs.jadeKind : (attrs.slot && item.slot !== attrs.slot) || (attrs.level && !item.levels.includes(Number(attrs.level)))))) { attrs.itemId = ''; attrs.itemName = '' }
+})
+function addGreen() { greenRows.value.push({ id: makeId(), kind: '', value: '', negative: false, unit: '', perRank: '' }) }
+function removeGreen(id: string) { greenRows.value = greenRows.value.filter(r => r.id !== id) }
+function chooseGreen(id: string) {
+  const row = greenRows.value.find(r => r.id === id)
+  if (!row) return
+  const names = GREEN_ATTRIBUTE_OPTIONS[form.subtype] || []
+  const available = names.filter(n => form.subtype !== 'gear' || n === row.kind || !greenRows.value.some(r => r.id !== id && r.kind === n))
+  openChoice(choiceField('green:' + id, '选择数值属性', choices(available), false, false))
+}
+function numericRows(strict: boolean): NumericAttribute[] {
+  const result: NumericAttribute[] = []
+  for (let i = 0; i < greenRows.value.length; i++) {
+    const row = greenRows.value[i]
+    if (!row.kind || !/^\d{1,6}(\.\d{1,2})?$/.test(row.value.trim())) {
+      if (strict) throw new Error('第' + (i + 1) + '条属性请选择类型并填写数值，最多两位小数')
+      continue
+    }
+    const magnitude = Number(row.value)
+    // UTS 的类型化对象会为省略字段补 null，条件展开会覆盖已有 kind/value。
+    const attribute: NumericAttribute = { kind: row.kind, value: magnitude === 0 ? 0 : magnitude * (row.negative ? -1 : 1) }
+    if (row.unit) attribute.unit = row.unit
+    if (row.perRank.trim()) { if (!/^\d{1,6}(\.\d{1,2})?$/.test(row.perRank.trim())) { if (strict) throw new Error('每级增量应为非负数，最多两位小数') } else attribute.perRank = Number(row.perRank) }
+    result.push(attribute)
+  }
+  return result
+}
+const generatedName = computed(() => equipmentName({ id: recordId.value, roleId: parent.value, name: '', costCents: 0, included: false, date: '', detail: '', note: '', category: 'equipment', subtype: form.subtype, attributes: { ...attrs, level: attrs.level !== '' ? Number(attrs.level) : undefined, gemRank: attrs.gemRank !== '' ? Number(attrs.gemRank) : undefined, extraGemRank: attrs.extraGemRank !== '' ? Number(attrs.extraGemRank) : undefined, starRank: attrs.starRank !== '' ? Number(attrs.starRank) : undefined, dustRank: attrs.dustRank !== '' ? Number(attrs.dustRank) : undefined, bellLevel: attrs.bellLevel !== '' ? Number(attrs.bellLevel) : undefined, greenAttributes: numericRows(false), baseAttributes: baseRows(false) } }))
+const raceName = computed(() => RACES.find(r => r.key === form.race)?.label || '请选择种族')
+const fixedPreset = computed(() => FIXED_PRESETS.find(p => p.school === form.school))
+const roleRateFields = computed(() => [
+  { key:'magicDamageRate', label:'伤害→法伤系数', hint:'默认 0.25，命中不参与' },
+  { key:'powerRate', label:'力量→伤害系数', hint:'默认 ' + (RACES.find(r => r.key === form.race)?.power || '需选择种族') },
+  { key:'enduranceRate', label:'耐力→防御系数', hint:'默认 ' + (RACES.find(r => r.key === form.race)?.endurance || '需选择种族') },
+  ...(rules.fixedEnabled ? [{ key:'fixedDamageRate',label:'伤害→固伤系数',hint:'默认 ' + (fixedPreset.value?.damage ?? '需自定义') },{key:'fixedAgilityRate',label:'敏捷→固伤系数',hint:'默认 ' + (fixedPreset.value?.agility ?? '需自定义') }] : [])
+])
+const baseKinds = computed(() => form.subtype === 'gear' ? BASE_FIELDS[attrs.slot] || [] : attrs.baseKind ? [attrs.baseKind] : [])
+function baseRows(strict: boolean): NumericAttribute[] {
+  const rows: NumericAttribute[] = []
+  for (const key of Object.keys(baseValues)) {
+    const raw = baseValues[key].trim()
+    if (!raw) continue
+    if (!/^\d{1,6}(\.\d{1,2})?$/.test(raw)) { if (strict) throw new Error('基础属性应为非负数，最多两位小数'); continue }
+    if (baseKinds.value.includes(key)) rows.push({ kind:key, value:Number(raw) })
+  }
+  return rows
+}
+function baseChoices() {
+  const names: string[] = form.subtype === 'jade' ? GREEN_ATTRIBUTE_OPTIONS.jade || [] : attrs.slot === '戒指' ? ['伤害','防御'] : attrs.slot === '耳饰' ? ['法术伤害','法术防御'] : attrs.slot === '手镯' ? ['封印命中等级','抗封印等级'] : ['速度']
+  openChoice(choiceField('baseKind','选择基础属性',choices(names),false,false))
+}
+function toggleExtraGem() { extraGemEnabled.value = !extraGemEnabled.value; if (!extraGemEnabled.value) { attrs.extraGem = ''; attrs.extraGemRank = '' } }
+const calculationPreview = computed(() => {
+  const role = parentRole.value
+  if (!role) return {metrics:[],notes:[]}
+  const record: Asset = { id:'preview',roleId:role.id,name:'',category:'equipment',subtype:form.subtype,costCents:0,included:false,date:'',detail:'',note:'',attributes:{ slot:attrs.slot,level:attrs.level ? Number(attrs.level) : undefined,baseAttributes:baseRows(false),greenAttributes:numericRows(false),valuesStage:attrs.valuesStage,gem:attrs.gem,gemRank:attrs.gemRank !== '' ? Number(attrs.gemRank) : undefined,extraGem:attrs.extraGem,extraGemRank:attrs.extraGemRank !== '' ? Number(attrs.extraGemRank) : undefined,starRank:attrs.starRank !== '' ? Number(attrs.starRank) : undefined,dustRank:attrs.dustRank !== '' ? Number(attrs.dustRank) : undefined,jadeKind:attrs.jadeKind } }
+  return equipmentCalculation(record,role)
+})
+const reviewConfiguration = computed(() => {
+  try { return attributeText({ id: 'preview', roleId: parent.value, name: generatedName.value, category: 'equipment', subtype: form.subtype, costCents: 0, included: form.included, date: form.date, detail: form.detail, note: form.note, attributes: buildAttributes() }) }
+  catch(e) { return '属性待完善' }
+})
+function buildRules(): CalculationRules {
+  const result: CalculationRules = {fixedEnabled:rules.fixedEnabled}
+  for (const key of ['magicDamageRate','powerRate','enduranceRate','fixedDamageRate','fixedAgilityRate']) if(rules[key].trim()) {
+    if (!/^\d{1,2}(\.\d{1,4})?$/.test(rules[key].trim())) throw new Error('换算系数应为 0～10 的数字')
+    result[key] = Number(rules[key])
+  }
+  return result
+}
+const equipmentFields = computed(() => {
+  if (!form.subtype) return [] as EquipmentField[]
+  const type = form.subtype
+  const fields: EquipmentField[] = []
+  if (type !== 'jade') {
+    fields.push(choiceField('slot', '部位', choices(EQUIPMENT_POSITIONS.find(t => t.key === type)?.positions || []), false, false))
+    fields.push(choiceField('level', '资产等级', choices((type === 'gear' ? Array.from({ length: 17 }, (_, i) => i * 10) : [60,80,100,120,140,160]).map(n => String(n))).map(o => ({ ...o, label: o.value + '级' })), false, false))
+  }
+  if (type !== 'jade') fields.push(choiceField('itemId', '物品名称', itemOptions.value, false, false))
+  if (type === 'gear') {
+    fields.push(choiceField('gem', '宝石类型', GEMS), choiceField('gemRank', '宝石锻数', ranks(30), false, false))
+    if (extraGemEnabled.value) fields.push(choiceField('extraGem','第二宝石类型',GEMS),choiceField('extraGemRank','第二宝石锻数',ranks(30),false,false))
+    fields.push(choiceField('setEffect', '套装效果', SET_EFFECTS), choiceField('specialSkill', '特技', SPECIAL_SKILLS), choiceField('specialEffects', '特效（可多选）', SPECIAL_EFFECTS, true))
+  }
+  if (type === 'ornament') fields.push(choiceField('starRank', '星辉石锻数', ranks(attrs.level ? Math.min(16, Math.floor(Number(attrs.level) / 10)) : 16), false, false), choiceField('bellSet', '钟灵石套装', BELL_SETS), choiceField('bellLevel', '钟灵石等级', choices(Array.from({ length: 8 }, (_, i) => String(i + 1))).map(o => ({ ...o, label: o.value + '级' })), false, false))
+  if (type === 'jade') {
+    const spells = AMBUSH_SKILLS.filter(o => {
+      if (o.group.startsWith('法术·')) return !roleSchool.value || o.group === '法术·' + roleSchool.value
+      return !attrs.jadeKind || (attrs.jadeKind === '阳玉' ? o.group === '特技' : o.group === '道具')
+    })
+    fields.push(choiceField('jadeKind', '玉魄种类', choices(['阳玉', '阴玉']), false, false), choiceField('itemId', '物品名称', itemOptions.value, false, false), choiceField('dustRank', '五色灵尘锻数', ranks(15), false, false), choiceField('jadeEffects', '玉魄技能（可多选）', JADE_EFFECTS, true), choiceField('ambushSkills', '奇袭内容（可多选）', spells, true))
+  }
+  return fields
+})
+function choiceValues(key: string): string[] { if (key === 'roleRace') return form.race ? [form.race] : []; if (key.startsWith('green:')) { const row = greenRows.value.find(r => r.id === key.slice(6)); return row?.kind ? [row.kind] : [] }; if (key === 'itemId') return [attrs.itemId || '__generic__']; const value = attrs[key]; return Array.isArray(value) ? value.slice() : value ? [String(value)] : [] }
+function choiceValue(field: EquipmentField): string { return choiceValues(field.key).map(v => field.options.find(o => o.value === v)?.label || v).join(' / ') }
+function openChoice(field: EquipmentField) { activeChoice.value = field }
+function applyChoice(values: string[]) {
+  if (!activeChoice.value) return
+  if (activeChoice.value.key === 'roleRace') { form.race = values[0] || ''; activeChoice.value = null; return }
+  if (activeChoice.value.key.startsWith('green:')) { const row = greenRows.value.find(r => r.id === activeChoice.value?.key.slice(6)); if (row) row.kind = values[0] || ''; activeChoice.value = null; return }
+  if (activeChoice.value.key === 'itemId') {
+    const item = EQUIPMENT_ITEMS.find(i => i.id === values[0])
+    if (!item && values[0] === attrs.itemId) { activeChoice.value = null; return }
+    attrs.itemId = item?.id || ''; attrs.itemName = item?.name || ''
+    if (item) { if (item.subtype === 'jade') attrs.jadeKind = item.slot; else attrs.slot = item.slot; if (!attrs.level && item.levels.length === 1) attrs.level = String(item.levels[0]) }
+    activeChoice.value = null; return
+  }
+  // 明确选择或清空专用锻数时，替换旧版共用宝石字段，避免清空后又回退到旧值。
+  if (activeChoice.value.key === 'starRank' || activeChoice.value.key === 'dustRank') { attrs.gemRank = ''; attrs.gem = '' }
+  attrs[activeChoice.value.key] = activeChoice.value.multiple ? values.slice() : values[0] || ''
+  activeChoice.value = null
+}
+function snapshot() { return JSON.stringify({ form, attrs, baseValues, rules, greenRows: greenRows.value, extraGemEnabled: extraGemEnabled.value, expanded: expanded.value, step: step.value }) }
+function leaveEditor() { leaving = true; uni.navigateBack() }
+onBackPress(() => {
+  if (leaving) return false
+  if (activeChoice.value) { activeChoice.value = null; return true }
+  if (equipmentWizard.value && step.value > 0) { previousStep(); return true }
+  if (!initialSnapshot || snapshot() === initialSnapshot || fatal.value) return false
+  if (leaveDialogOpen) return true
+  leaveDialogOpen = true
+  uni.showActionSheet({ itemList: ['保留草稿并返回', '放弃修改并返回', '继续编辑'], success: res => {
+    try {
+      if (res.tapIndex === 0) { uni.setStorageSync(draftKey.value, snapshot()); leaveEditor() }
+      if (res.tapIndex === 1) { uni.removeStorageSync(draftKey.value); leaveEditor() }
+    } catch(e) { error.value = '草稿操作失败：' + errorMessage(e) }
+  }, complete: () => { leaveDialogOpen = false } })
+  return true
+})
+function restoreDraft() {
+  const raw = uni.getStorageSync(draftKey.value)
+  if (typeof raw !== 'string' || !raw) return
+  uni.showModal({ title: '发现未保存的草稿', content: '恢复上次保留的内容继续编辑？', confirmText: '恢复草稿', cancelText: '重新录入', success: res => {
+    if (!res.confirm) { uni.removeStorageSync(draftKey.value); return }
+    try {
+      const draft = JSON.parse(raw)
+      if (!draft || !draft.form || !draft.attrs || !draft.baseValues || !draft.rules || !Array.isArray(draft.greenRows)) throw new Error('草稿内容不完整')
+      Object.assign(form, draft.form); Object.assign(attrs, draft.attrs); Object.assign(baseValues, draft.baseValues); Object.assign(rules, draft.rules)
+      greenRows.value = draft.greenRows; extraGemEnabled.value = !!draft.extraGemEnabled; expanded.value = !!draft.expanded
+      step.value = [0,1,2].includes(draft.step) ? draft.step : 0
+    } catch(e) { error.value = '草稿恢复失败：' + errorMessage(e) }
+  } })
+}
+function previousStep() { step.value = Math.max(0, step.value - 1); error.value = ''; uni.pageScrollTo({ scrollTop: 0, duration: 0 }) }
+function submitStep() {
+  if (!equipmentWizard.value || step.value === 2) { save(); return }
+  error.value = ''
+  try {
+    if (step.value === 0) {
+      toCents(form.amount)
+      if (!EQUIPMENT_POSITIONS.find(type => type.key === form.subtype)?.positions.includes(form.subtype === 'jade' ? attrs.jadeKind : attrs.slot)) throw new Error('请选择具体装备类型和部位')
+      if (form.subtype !== 'jade' && (!/^\d{1,3}$/.test(attrs.level) || Number(attrs.level) > 160)) throw new Error('请选择有效的资产等级')
+      if (form.date && !/^\d{4}-\d{2}-\d{2}$/.test(form.date)) throw new Error('日期格式应为 YYYY-MM-DD')
+    } else { buildAttributes() }
+    step.value++; uni.pageScrollTo({ scrollTop: 0, duration: 0 })
+  } catch(e) { error.value = errorMessage(e) }
+}
+const equipmentSetBlocked = computed(() => legacyEquipmentSet.value || form.purchaseKind === 'set')
+const title = computed(() => equipmentWizard.value ? (recordId.value ? '编辑装备' : '记录装备') : (recordId.value ? '编辑' : '新增') + (kind.value === 'accounts' ? '账号' : kind.value === 'roles' ? '角色' : '明细'))
+watch(title, value => uni.setNavigationBarTitle({ title: value }), { immediate: true })
+const categoryLabel = computed(() => CATEGORIES.find(c => c.key === form.category)?.label || '资产')
+const canInclude = computed(() => bundled.value && form.category !== 'other')
+const subtypeName = computed(() => SUBTYPES.find(s => s.key === form.subtype && s.category === form.category)?.label || '未细分')
+const suggestion = computed(() => suggestSubtype(form.category, form.name))
+const suggestionName = computed(() => SUBTYPES.find(s => s.key === suggestion.value)?.label || '')
+const detailPlaceholder = computed(() => form.category === 'pet' ? '例如：画魂 · 4技能 · 须弥 · 成长1.27' : form.category === 'equipment' ? '例如：初灵182、魔力27、法伤属性。上方已选择的内容无需重复填写。' : '例如：点修、技能、手续费、月卡或硬件分摊')
+onLoad(options => {
+  try {
+    kind.value = options.kind || 'accounts'
+    if (!['accounts', 'roles', 'assets'].includes(kind.value)) throw new Error('页面参数不正确')
+    recordId.value = options.id || ''
+    parent.value = options.parent || ''
+    const data = loadLedger()
+    if (CATEGORIES.some(c => c.key === options.category)) form.category = String(options.category)
+    if (SUBTYPES.some(s => s.key === options.subtype && s.category === form.category)) form.subtype = String(options.subtype)
+    if (recordId.value) {
+      const records = data[kind.value as keyof Ledger] as (Account | Role | Asset)[]
+      const existing = records.find(r => r.id === recordId.value)
+      if (!existing) throw new Error('记录不存在或已删除')
+      Object.assign(form, existing)
+      if (kind.value === 'roles') { const role = existing as Role; form.race = role.race || ''; if (role.calculation) { rules.fixedEnabled = role.calculation.fixedEnabled || false; for(const key of ['fixedDamageRate','fixedAgilityRate','magicDamageRate','powerRate','enduranceRate']) rules[key] = role.calculation[key] != null ? String(role.calculation[key]) : '' }; form.level = String(role.level); form.amount = amountInput(role.purchaseCents); parent.value = role.accountId }
+      if (kind.value === 'assets') {
+        const asset = existing as Asset; form.amount = amountInput(asset.costCents); parent.value = asset.roleId
+        form.originalName = asset.originalName || (!asset.nameGenerated ? asset.name : '');
+        form.subtype = assetSubtype(asset); form.purchaseKind = asset.purchaseKind || 'single'; form.contents = asset.contents || ''
+        legacyEquipmentSet.value = isEquipmentSet(asset)
+        form.quantity = asset.quantity != null ? String(asset.quantity) : ''
+        if (asset.attributes) {
+          const a = asset.attributes
+          attrs.extraGem = a.extraGem || ''; attrs.extraGemRank = a.extraGemRank != null ? String(a.extraGemRank) : ''; extraGemEnabled.value = !!a.extraGem; attrs.valuesStage = a.valuesStage || 'finished'
+          for(const row of a.baseAttributes || []) baseValues[row.kind] = String(row.value)
+          attrs.baseKind = a.baseAttributes?.[0]?.kind || ''
+          attrs.itemId = a.itemId || ''; attrs.itemName = a.itemName || ''
+          greenRows.value = (a.greenAttributes || []).map(r => ({ id: makeId(), kind: r.kind, value: String(Math.abs(r.value)), negative: r.value < 0, unit: r.unit || '', perRank: r.perRank != null ? String(r.perRank) : '' }))
+          attrs.slot = form.subtype === 'jade' ? a.slot || '' : equipmentPosition(asset); attrs.gem = a.gem || ''; attrs.effect = a.effect || ''; attrs.petType = a.petType || ''; attrs.skills = a.skills || ''; attrs.growth = a.growth || ''
+          attrs.level = a.level != null ? String(a.level) : ''; attrs.gemRank = a.gemRank != null ? String(a.gemRank) : ''; expanded.value = !!(a.effect || a.petType || a.skills || a.growth)
+          attrs.setEffect = a.setEffect || ''; attrs.specialSkill = a.specialSkill || ''; attrs.specialEffects = a.specialEffects?.slice() || []
+          attrs.bellSet = a.bellSet || ''; attrs.jadeKind = a.jadeKind || ''; attrs.jadeEffects = a.jadeEffects?.slice() || []; attrs.ambushSkills = a.ambushSkills?.slice() || []
+          attrs.starRank = a.starRank != null ? String(a.starRank) : form.subtype === 'ornament' && a.gemRank != null ? String(a.gemRank) : ''
+          attrs.bellLevel = a.bellLevel != null ? String(a.bellLevel) : ''
+          attrs.dustRank = a.dustRank != null ? String(a.dustRank) : form.subtype === 'jade' && a.gemRank != null && a.gemRank <= 15 ? String(a.gemRank) : ''
+        }
+      }
+    }
+    if (kind.value === 'assets' && !recordId.value && form.category === 'equipment' && !form.subtype) form.subtype = 'gear'
+    if (kind.value === 'roles') {
+      const account = data.accounts.find(a => a.id === parent.value)
+      if (!account) throw new Error('请先创建账号，再添加角色')
+      parentName.value = account.name
+    }
+    if (kind.value === 'assets') {
+      const role = data.roles.find(r => r.id === parent.value)
+      if (!role) throw new Error('请先创建角色，再添加明细')
+      parentRole.value = role; parentName.value = role.name; roleSchool.value = role.school; bundled.value = role.purchaseMode === 'bundle'
+    }
+    nextTick(() => { initialSnapshot = snapshot(); restoreDraft() })
+  } catch (e) { fatal.value = errorMessage(e) }
+})
+function chooseSchool() {
+  // 每组最多 5 项，兼容原生 actionSheet 的菜单项数限制。
+  uni.showActionSheet({ itemList: ['大唐官府～天宫', '龙宫～魔王寨', '狮驼岭～无底洞', '花果山～其他'], success: first => {
+    const list = SCHOOLS.slice(first.tapIndex * 5, first.tapIndex * 5 + 5)
+    uni.showActionSheet({ itemList: list, success: second => { form.school = list[second.tapIndex] } })
+  } })
+}
+function chooseCategory() { uni.showActionSheet({ itemList: CATEGORIES.map(c => c.label), success: res => { form.category = CATEGORIES[res.tapIndex].key; form.subtype = form.category === 'equipment' ? 'gear' : ''; if (!canInclude.value) form.included = false } }) }
+function chooseSubtype() {
+  const list = SUBTYPES.filter(s => s.category === form.category)
+  uni.showActionSheet({ itemList: ['暂不细分', ...list.map(s => s.label)], success: res => { form.subtype = res.tapIndex === 0 ? '' : list[res.tapIndex - 1].key } })
+}
+function optionalInt(raw: string, label: string): number | undefined {
+  if (!raw.trim()) return undefined
+  if (!/^\d{1,3}$/.test(raw.trim())) throw new Error(label + '应为整数')
+  return Number(raw)
+}
+function buildAttributes(): AssetAttributes | undefined {
+  const result: AssetAttributes = {}
+  if (form.category === 'equipment') {
+    const base = baseRows(true); if (base.length) result.baseAttributes = base
+    result.valuesStage = attrs.valuesStage
+    if (attrs.extraGem) result.extraGem = attrs.extraGem
+    if (attrs.extraGemRank !== '') result.extraGemRank = optionalInt(attrs.extraGemRank,'第二宝石锻数')
+    const green = numericRows(true); if (green.length) result.greenAttributes = green
+    // 保留其他类型的已录属性，切换类型后可切回；清空当前选项会确实移除该字段。
+    for (const key of ['itemId', 'itemName', 'slot', 'gem', 'setEffect', 'specialSkill', 'bellSet', 'jadeKind']) if (attrs[key].trim()) result[key] = attrs[key].trim()
+    for (const [key, label] of [['level', '资产等级'], ['gemRank', '宝石锻数'], ['starRank', '星辉石锻数'], ['bellLevel', '钟灵石等级'], ['dustRank', '五色灵尘锻数']]) {
+      const value = optionalInt(attrs[key], label); if (value !== undefined) result[key] = value
+    }
+    for (const key of ['specialEffects', 'jadeEffects', 'ambushSkills']) if (attrs[key].length) result[key] = attrs[key].slice()
+  }
+  if (form.category === 'pet') {
+    if (attrs.petType.trim()) result.petType = attrs.petType.trim()
+    if (attrs.skills.trim()) result.skills = attrs.skills.trim()
+    if (attrs.growth.trim()) result.growth = attrs.growth.trim()
+  }
+  if (form.category !== 'other' && attrs.effect.trim()) result.effect = attrs.effect.trim()
+  return Object.keys(result).length ? result : undefined
+}
+function save() {
+  if (saving.value || fatal.value) return
+  saving.value = true; error.value = ''
+  try {
+    const data = loadLedger()
+    const id = recordId.value || makeId()
+    let record: Account | Role | Asset | null = null
+    if (kind.value === 'accounts') record = { id, name: form.name.trim(), group: form.group.trim(), note: form.note.trim() }
+    if (kind.value === 'roles') {
+      if (!/^\d{1,3}$/.test(String(form.level))) throw new Error('等级应为 0～200 的整数')
+      if (form.purchaseMode !== 'bundle' && data.assets.some(a => a.roleId === id && a.included)) throw new Error('请先将随号资产改为独立计价，再切换起号方式，避免成本口径意外变化')
+      record = { id, accountId: parent.value, name: form.name.trim(), server: form.server.trim(), school: form.school, level: Number(form.level), gameId: form.gameId.trim(), purchaseCents: toCents(form.amount), purchaseMode: form.purchaseMode, note: form.note.trim(), calculation: buildRules(), ...(form.race ? {race:form.race} : {}) }
+    }
+    if (kind.value === 'assets') {
+      if (form.category === 'equipment' && equipmentSetBlocked.value) throw new Error('旧组合记录请逐件重新录入，不能直接转换为一件装备')
+      if (form.category === 'equipment') { form.purchaseKind = 'single'; form.contents = ''; form.quantity = '' }
+      const attributes = buildAttributes()
+      record = { id, roleId: parent.value, name: form.category === 'equipment' ? generatedName.value : form.name.trim(),
+        ...(form.category === 'equipment' ? { nameGenerated: true, ...(form.originalName ? { originalName: form.originalName } : {}) } : {}), category: form.category, costCents: toCents(form.amount), included: canInclude.value && form.included, date: form.date.trim(), detail: form.detail.trim(), note: form.note.trim(), purchaseKind: form.purchaseKind,
+        ...(form.subtype ? { subtype: form.subtype } : {}),
+        ...(form.purchaseKind === 'set' ? { contents: form.contents.trim() } : {}),
+        ...(form.purchaseKind === 'set' && form.quantity.trim() ? { quantity: optionalInt(form.quantity, '组合数量') } : {}),
+        ...(attributes ? { attributes } : {}) }
+    }
+    if (!record) throw new Error('记录类型不正确')
+    saveLedger(putRecord(data, kind.value, record))
+    try { uni.removeStorageSync(draftKey.value) } catch(e) { console.log('已保存记录，草稿清理失败', e) }
+    recordId.value = id
+    leaving = true
+    uni.showToast({ title: '已保存', icon: 'success' })
+    uni.navigateBack()
+  } catch (e) { error.value = errorMessage(e); if (equipmentWizard.value) { step.value = /属性|宝石|锻|技能|数值|奇袭/.test(error.value) ? 1 : 0 } }
+  finally { saving.value = false }
+}
+</script>
+<style>
+.mode-options { flex-direction: row; margin-bottom: 14rpx; }
+.mode-option { flex: 1; padding: 20rpx 4rpx; margin-right: 8rpx; border-radius: 14rpx; background-color: #f0f1e9; align-items: center; }
+.mode-active { background-color: #e7f0ea; }
+.mode-text { color: #6d7e74; font-size: 24rpx; }
+.mode-text-active { color: #287565; font-weight: bold; }
+.equipment-section { background-color: #f5f4ee; padding: 20rpx; border-radius: 18rpx; margin-top: 20rpx; }
+.choice-value { flex: 1; margin-right: 16rpx; line-height: 40rpx; }
+.generated-name { background-color: #e7f0ea; padding: 20rpx; border-radius: 16rpx; }
+.generated-title { font-size: 28rpx; color: #287565; line-height: 42rpx; font-weight: bold; margin-bottom: 10rpx; }
+.numeric-section { margin-top: 24rpx; }
+.numeric-row { padding: 18rpx 0; border-bottom: 1rpx solid #e3e8dd; }
+.numeric-kind { flex: 1; justify-content: center; }
+.numeric-remove { margin-left: 20rpx; }
+.numeric-input-row { flex-direction: row; align-items: center; margin-top: 14rpx; }
+.numeric-sign { font-size: 32rpx; color: #287565; background-color: #e7f0ea; padding: 16rpx; border-radius: 12rpx; margin-right: 12rpx; }
+.numeric-value { flex: 1; margin-right: 12rpx; }
+.numeric-unit { font-size: 24rpx; color: #287565; padding: 12rpx; }
+.base-section { margin-top: 24rpx; }
+.calculation-panel { background-color: #edf3ed; padding: 20rpx; border-radius: 16rpx; margin-top: 24rpx; }
+.metric-row { margin-top: 16rpx; }
+.metric-label { font-size: 24rpx; color: #6d7e74; }
+.metric-value { font-size: 30rpx; color: #287565; font-weight: bold; }
+.metric-formula { font-size: 22rpx; color: #6d7e74; line-height: 34rpx; }
+.quantity-label { margin-top: 20rpx; }
+.stepper { flex-direction: row; margin-top: 28rpx; margin-bottom: 12rpx; }
+.step-item { flex: 1; align-items: center; padding: 12rpx 0; }
+.step-number { width: 48rpx; height: 48rpx; line-height: 48rpx; text-align: center; border-radius: 24rpx; background-color: #e4e8de; color: #6d7e74; font-size: 24rpx; }
+.step-label { font-size: 24rpx; color: #6d7e74; margin-top: 12rpx; }
+.step-active { background-color: #e7f0ea; border-radius: 18rpx; }
+.selected-item { margin-bottom: 22rpx; }
+.selected-item-copy { margin-left: 22rpx; }
+.equipment-section { background-color: #fffefb; padding: 0; }
+.editor-dock { flex-direction: row; align-items: center; }
+.previous-step { padding-right: 28rpx; }
+.editor-submit { flex: 1; }
+.review-panel { margin-top: 24rpx; }
+.review-name { margin-top: 20rpx; margin-bottom: 24rpx; }
+.review-money { color: #287565; font-size: 40rpx; font-weight: bold; }
+.review-note { margin-top: 16rpx; }
+.step-hint { margin-top: 24rpx; }
+.editor-error { padding: 20rpx; background-color: #fff4df; border-radius: 16rpx; }
+.amount-group { padding-top: 16rpx; border-top-width: 1rpx; border-top-color: #e8ebe2; }
+.category-context { font-size: 22rpx; padding: 8rpx 0; }
+.identity-fields { flex-direction: row; flex-wrap: wrap; }
+.identity-field { width: 48%; margin-right: 2%; }
+.identity-wide { width: 100%; margin-right: 0; }
+.stepper { margin-top: 0; }
+.review-configuration { margin-top: 26rpx; padding-top: 24rpx; border-top-width: 1rpx; border-top-color: #e8ebe2; }
+</style>

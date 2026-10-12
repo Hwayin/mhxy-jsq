@@ -1,0 +1,4666 @@
+// 网易公开物品配置离线名称表，读取于 2026-10-08。来源见 docs/equipment-details.md。
+export type EquipmentItem = { id: string; name: string; subtype: string; slot: string; kind: string; levels: number[] }
+export const EQUIPMENT_ITEMS: EquipmentItem[] = [
+  {
+    "id": "1550",
+    "name": "太极",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "扇",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1551",
+    "name": "玉龙",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "扇",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1552",
+    "name": "秋风",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "扇",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1850",
+    "name": "沧海",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "魔棒",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1851",
+    "name": "红莲",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "魔棒",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1852",
+    "name": "盘龙",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "魔棒",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1750",
+    "name": "龙筋",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "鞭",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1751",
+    "name": "百花",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "鞭",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1752",
+    "name": "吹雪",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "鞭",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "2050",
+    "name": "如意",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双环",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "2051",
+    "name": "乾坤",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双环",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "2052",
+    "name": "月光",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双环",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1150",
+    "name": "冷月",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "刀",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1151",
+    "name": "屠龙",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "刀",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1152",
+    "name": "血刃",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "刀",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1250",
+    "name": "八卦",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "锤",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1251",
+    "name": "鬼牙",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "锤",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1252",
+    "name": "雷神",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "锤",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1650",
+    "name": "暗夜",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "枪",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1651",
+    "name": "梨花",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "枪",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1652",
+    "name": "霹雳",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "枪",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1450",
+    "name": "破魄",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "斧",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1451",
+    "name": "肃魂",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "斧",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1452",
+    "name": "无敌",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "斧",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "2350",
+    "name": "离火",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "宝珠",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "2351",
+    "name": "飞星",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "宝珠",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "2352",
+    "name": "月华",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "宝珠",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "2450",
+    "name": "非攻",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "弓",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "2451",
+    "name": "幽篁",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "弓",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "2452",
+    "name": "百鬼",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "弓",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "2250",
+    "name": "业焰",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "法杖",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "2251",
+    "name": "鹿鸣",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "法杖",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "2252",
+    "name": "玉辉",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "法杖",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1050",
+    "name": "鱼肠",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "剑",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1051",
+    "name": "倚天",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "剑",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1052",
+    "name": "湛卢",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "剑",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "2150",
+    "name": "阴阳",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双剑",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "2151",
+    "name": "月光",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双剑",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "2152",
+    "name": "灵蛇",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双剑",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "31250",
+    "name": "蟠龙",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "灯笼",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "31251",
+    "name": "云鹤",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "灯笼",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "31252",
+    "name": "风荷",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "灯笼",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "31050",
+    "name": "昆吾",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "巨剑",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "31051",
+    "name": "弦歌",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "巨剑",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "31052",
+    "name": "鸦九",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "巨剑",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "31350",
+    "name": "鬼骨",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "伞",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "31351",
+    "name": "云梦",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "伞",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "31352",
+    "name": "枕霞",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "伞",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1950",
+    "name": "彩虹",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "飘带",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1951",
+    "name": "流云",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "飘带",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1952",
+    "name": "碧波",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "飘带",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1350",
+    "name": "撕天",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "爪刺",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1351",
+    "name": "毒牙",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "爪刺",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1352",
+    "name": "胭脂",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "爪刺",
+    "levels": [
+      90,
+      100,
+      110
+    ]
+  },
+  {
+    "id": "1560",
+    "name": "画龙点睛",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "扇",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1561",
+    "name": "秋水人家",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "扇",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1562",
+    "name": "逍遥江湖",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "扇",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1860",
+    "name": "降魔玉杵",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "魔棒",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1861",
+    "name": "青藤玉树",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "魔棒",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1862",
+    "name": "墨玉骷髅",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "魔棒",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1760",
+    "name": "游龙惊鸿",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "鞭",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1761",
+    "name": "仙人指路",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "鞭",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1762",
+    "name": "血之刺藤",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "鞭",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "2060",
+    "name": "别情离恨",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双环",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "2061",
+    "name": "金玉双环",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双环",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "2062",
+    "name": "九天金线",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双环",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1160",
+    "name": "偃月青龙",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "刀",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1161",
+    "name": "晓风残月",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "刀",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1162",
+    "name": "斩妖泣血",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "刀",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1260",
+    "name": "混元金锤",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "锤",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1261",
+    "name": "九瓣莲花",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "锤",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1262",
+    "name": "鬼王蚀日",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "锤",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1660",
+    "name": "刑天之逆",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "枪",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1661",
+    "name": "五虎断魂",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "枪",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1662",
+    "name": "飞龙在天",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "枪",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1460",
+    "name": "五丁开山",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "斧",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1461",
+    "name": "元神禁锢",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "斧",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1462",
+    "name": "护法灭魔",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "斧",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "2360",
+    "name": "回风舞雪",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "宝珠",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "2361",
+    "name": "紫金葫芦",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "宝珠",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "2362",
+    "name": "裂云啸日",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "宝珠",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "2460",
+    "name": "冥火薄天",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "弓",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "2461",
+    "name": "龙鸣寒水",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "弓",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "2462",
+    "name": "太极流光",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "弓",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "2260",
+    "name": "庄周梦蝶",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "法杖",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "2261",
+    "name": "凤翼流珠",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "法杖",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "2262",
+    "name": "雪蟒霜寒",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "法杖",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1060",
+    "name": "魏武青虹",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "剑",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1061",
+    "name": "灵犀神剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "剑",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1062",
+    "name": "四法青云",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "剑",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "2160",
+    "name": "金龙双剪",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双剑",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "2161",
+    "name": "连理双树",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双剑",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "2162",
+    "name": "祖龙对剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双剑",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "31260",
+    "name": "金风玉露",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "灯笼",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "31261",
+    "name": "凰火燎原",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "灯笼",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "31262",
+    "name": "风露清愁",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "灯笼",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "31060",
+    "name": "秋水澄流",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "巨剑",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "31061",
+    "name": "腾蛇郁刃",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "巨剑",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "31062",
+    "name": "墨骨枯麟",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "巨剑",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "31360",
+    "name": "月影星痕",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "伞",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "31361",
+    "name": "雪羽穿云",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "伞",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "31362",
+    "name": "碧火琉璃",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "伞",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1960",
+    "name": "秋水落霞",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "飘带",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1961",
+    "name": "晃金仙绳",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "飘带",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1962",
+    "name": "此最相思",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "飘带",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1360",
+    "name": "九阴勾魂",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "爪刺",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1361",
+    "name": "雪蚕之刺",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "爪刺",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1362",
+    "name": "贵霜之牙",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "爪刺",
+    "levels": [
+      120,
+      130,
+      140
+    ]
+  },
+  {
+    "id": "1570",
+    "name": "浩气长舒",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "扇",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "1870",
+    "name": "丝萝乔木",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "魔棒",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "1770",
+    "name": "牧云清歌",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "鞭",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "2070",
+    "name": "无关风月",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双环",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "1170",
+    "name": "业火三灾",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "刀",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "1270",
+    "name": "狂澜碎岳",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "锤",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "1670",
+    "name": "天龙破城",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "枪",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "1470",
+    "name": "碧血干戚",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "斧",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "2370",
+    "name": "云雷万里",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "宝珠",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "2470",
+    "name": "九霄风雷",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "弓",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "2270",
+    "name": "碧海潮生",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "法杖",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "1070",
+    "name": "霜冷九州",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "剑",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "2170",
+    "name": "紫电青霜",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双剑",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "31270",
+    "name": "夭桃秾李",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "灯笼",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "31070",
+    "name": "百辟镇魂",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "巨剑",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "31370",
+    "name": "浮生归梦",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "伞",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "1970",
+    "name": "揽月摘星",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "飘带",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "1370",
+    "name": "忘川三途",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "爪刺",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "1580",
+    "name": "星瀚",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "扇",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "1880",
+    "name": "醍醐",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "魔棒",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "1780",
+    "name": "霜陨",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "鞭",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "2080",
+    "name": "朝夕",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双环",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "1180",
+    "name": "鸣鸿",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "刀",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "1280",
+    "name": "碎寂",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "锤",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "1680",
+    "name": "弑皇",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "枪",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "1480",
+    "name": "裂天",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "斧",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "2380",
+    "name": "赤明",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "宝珠",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "2480",
+    "name": "若木",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "弓",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "2280",
+    "name": "弦月",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "法杖",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "1080",
+    "name": "擒龙",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "剑",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "2180",
+    "name": "浮犀",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双剑",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "31280",
+    "name": "荒尘",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "灯笼",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "31080",
+    "name": "长息",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "巨剑",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "31380",
+    "name": "晴雪",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "伞",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "1980",
+    "name": "九霄",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "飘带",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "1380",
+    "name": "离钩",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "爪刺",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "1507",
+    "name": "神火扇",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "扇",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "1807",
+    "name": "满天星",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "魔棒",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "1707",
+    "name": "青藤柳叶鞭",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "鞭",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "2007",
+    "name": "蛇形月",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双环",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "1107",
+    "name": "狼牙刀",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "刀",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "1207",
+    "name": "震天锤",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "锤",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "1607",
+    "name": "玄铁矛",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "枪",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "1407",
+    "name": "乌金鬼头镰",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "斧",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "2307",
+    "name": "如意宝珠",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "宝珠",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "2407",
+    "name": "连珠神弓",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "弓",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "2207",
+    "name": "腾云杖",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "法杖",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "1007",
+    "name": "游龙剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "剑",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "2107",
+    "name": "赤焰双剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双剑",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "31207",
+    "name": "玲珑盏",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "灯笼",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "31007",
+    "name": "惊涛雪",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "巨剑",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "31307",
+    "name": "孔雀羽",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "伞",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "1907",
+    "name": "七彩罗刹",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "飘带",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "1307",
+    "name": "青刚刺",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "爪刺",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "1508",
+    "name": "阴风扇",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "扇",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "1808",
+    "name": "水晶棒",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "魔棒",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "1708",
+    "name": "雷鸣嗜血鞭",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "鞭",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "2008",
+    "name": "子母双月",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双环",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "1108",
+    "name": "龙鳞宝刀",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "刀",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "1208",
+    "name": "巨灵神锤",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "锤",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "1608",
+    "name": "金蛇信",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "枪",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "1408",
+    "name": "狂魔镰",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "斧",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "2308",
+    "name": "沧海明珠",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "宝珠",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "2408",
+    "name": "游鱼戏珠",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "弓",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "2208",
+    "name": "引魂杖",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "法杖",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "1008",
+    "name": "北斗七星剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "剑",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "2108",
+    "name": "墨玉双剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双剑",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "31208",
+    "name": "玉兔盏",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "灯笼",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "31008",
+    "name": "醉浮生",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "巨剑",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "31308",
+    "name": "金刚伞",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "伞",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "1908",
+    "name": "缚神绫",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "飘带",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "1308",
+    "name": "华光刺",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "爪刺",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "1509",
+    "name": "风云雷电",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "扇",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "1809",
+    "name": "日月光华",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "魔棒",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "1709",
+    "name": "混元金钩",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "鞭",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "2009",
+    "name": "斜月狼牙",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双环",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "1109",
+    "name": "黑炎魔刀",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "刀",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "1209",
+    "name": "天崩地裂",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "锤",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "1609",
+    "name": "丈八点钢矛",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "枪",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "1409",
+    "name": "恶龙之齿",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "斧",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "2309",
+    "name": "无量玉璧",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "宝珠",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "2409",
+    "name": "灵犀望月",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "弓",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "2209",
+    "name": "碧玺杖",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "法杖",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "1009",
+    "name": "碧玉剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "剑",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "2109",
+    "name": "梅花双剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双剑",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "31209",
+    "name": "冰心盏",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "灯笼",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "31009",
+    "name": "沉戟天戉",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "巨剑",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "31309",
+    "name": "落梅伞",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "伞",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "1909",
+    "name": "九天仙绫",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "飘带",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "1309",
+    "name": "龙鳞刺",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "爪刺",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "1001",
+    "name": "青铜短剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "剑",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "1002",
+    "name": "铁齿剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "剑",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "1003",
+    "name": "吴越剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "剑",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "1004",
+    "name": "青锋剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "剑",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "1005",
+    "name": "龙泉剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "剑",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "1006",
+    "name": "黄金剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "剑",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "1101",
+    "name": "柳叶刀",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "刀",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "1102",
+    "name": "苗刀",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "刀",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "1103",
+    "name": "夜魔弯刀",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "刀",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "1104",
+    "name": "金背大砍刀",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "刀",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "1105",
+    "name": "雁翅刀",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "刀",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "1106",
+    "name": "破天宝刀",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "刀",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "1201",
+    "name": "松木锤",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "锤",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "1202",
+    "name": "镔铁锤",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "锤",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "1203",
+    "name": "八棱金瓜",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "锤",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "1204",
+    "name": "狼牙锤",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "锤",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "1205",
+    "name": "烈焰锤",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "锤",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "1206",
+    "name": "破甲战锤",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "锤",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "1301",
+    "name": "铁爪",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "爪刺",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "1302",
+    "name": "天狼爪",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "爪刺",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "1303",
+    "name": "幽冥鬼爪",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "爪刺",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "1304",
+    "name": "青龙牙",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "爪刺",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "1305",
+    "name": "勾魂爪",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "爪刺",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "1306",
+    "name": "玄冰刺",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "爪刺",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "1401",
+    "name": "青铜斧",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "斧",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "1402",
+    "name": "开山斧",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "斧",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "1403",
+    "name": "双面斧",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "斧",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "1404",
+    "name": "双弦钺",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "斧",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "1405",
+    "name": "精钢禅钺",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "斧",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "1406",
+    "name": "黄金钺",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "斧",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "1501",
+    "name": "折扇",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "扇",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "1502",
+    "name": "铁骨扇",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "扇",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "1503",
+    "name": "精钢扇",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "扇",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "1504",
+    "name": "铁面扇",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "扇",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "1505",
+    "name": "百折扇",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "扇",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "1506",
+    "name": "劈水扇",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "扇",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "1601",
+    "name": "红樱枪",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "枪",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "1602",
+    "name": "曲尖枪",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "枪",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "1603",
+    "name": "锯齿矛",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "枪",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "1604",
+    "name": "乌金三叉戟",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "枪",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "1605",
+    "name": "火焰枪",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "枪",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "1606",
+    "name": "墨杆金钩",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "枪",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "1701",
+    "name": "牛皮鞭",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "鞭",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "1702",
+    "name": "牛筋鞭",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "鞭",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "1703",
+    "name": "乌龙鞭",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "鞭",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "1704",
+    "name": "钢结鞭",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "鞭",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "1705",
+    "name": "蛇骨鞭",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "鞭",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "1706",
+    "name": "玉竹金铃",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "鞭",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "1801",
+    "name": "细木棒",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "魔棒",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "1802",
+    "name": "金丝魔棒",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "魔棒",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "1803",
+    "name": "玉如意",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "魔棒",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "1804",
+    "name": "点金棒",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "魔棒",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "1805",
+    "name": "云龙棒",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "魔棒",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "1806",
+    "name": "幽路引魂",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "魔棒",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "1901",
+    "name": "五色缎带",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "飘带",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "1902",
+    "name": "幻彩银纱",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "飘带",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "1903",
+    "name": "金丝彩带",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "飘带",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "1904",
+    "name": "无极丝",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "飘带",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "1905",
+    "name": "天蚕丝带",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "飘带",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "1906",
+    "name": "云龙绸带",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "飘带",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "2001",
+    "name": "黄铜圈",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双环",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "2002",
+    "name": "精钢日月圈",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双环",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "2003",
+    "name": "离情环",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双环",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "2004",
+    "name": "金刺轮",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双环",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "2005",
+    "name": "风火圈",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双环",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "2006",
+    "name": "赤炎环",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双环",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "2101",
+    "name": "双短剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双剑",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "2102",
+    "name": "镔铁双剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双剑",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "2103",
+    "name": "龙凤双剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双剑",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "2104",
+    "name": "竹节双剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双剑",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "2105",
+    "name": "狼牙双剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双剑",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "2106",
+    "name": "鱼骨双剑",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "双剑",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "2201",
+    "name": "曲柳杖",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "法杖",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "2202",
+    "name": "红木杖",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "法杖",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "2203",
+    "name": "白椴杖",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "法杖",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "2204",
+    "name": "墨铁拐",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "法杖",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "2205",
+    "name": "玄铁牛角杖",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "法杖",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "2206",
+    "name": "鹰眼法杖",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "法杖",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "2301",
+    "name": "琉璃珠",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "宝珠",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "2302",
+    "name": "水晶珠",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "宝珠",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "2303",
+    "name": "珍宝珠",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "宝珠",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "2304",
+    "name": "翡翠珠",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "宝珠",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "2305",
+    "name": "莲华珠",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "宝珠",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "2306",
+    "name": "夜灵珠",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "宝珠",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "2401",
+    "name": "硬木弓",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "弓",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "2402",
+    "name": "铁胆弓",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "弓",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "2403",
+    "name": "紫檀弓",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "弓",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "2404",
+    "name": "宝雕长弓",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "弓",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "2405",
+    "name": "錾金宝弓",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "弓",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "2406",
+    "name": "玉腰弯弓",
+    "subtype": "gear",
+    "slot": "武器",
+    "kind": "弓",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "2501",
+    "name": "方巾",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "头盔",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "2502",
+    "name": "布帽",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "头盔",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "2503",
+    "name": "面具",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "头盔",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "2504",
+    "name": "纶巾",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "头盔",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "2505",
+    "name": "缨络丝带",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "头盔",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "2506",
+    "name": "羊角盔",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "头盔",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "2507",
+    "name": "水晶帽",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "头盔",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "2508",
+    "name": "乾坤帽",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "头盔",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "2509",
+    "name": "黑魔冠",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "头盔",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "2510",
+    "name": "簪子",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "发钗",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "2511",
+    "name": "玉钗",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "发钗",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "2512",
+    "name": "梅花簪子",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "发钗",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "2513",
+    "name": "珍珠头带",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "发钗",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "2514",
+    "name": "凤头钗",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "发钗",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "2515",
+    "name": "媚狐头饰",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "发钗",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "2516",
+    "name": "玉女发冠",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "发钗",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "2517",
+    "name": "魔女发冠",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "发钗",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "2518",
+    "name": "七彩花环",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "发钗",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "2551",
+    "name": "白玉龙冠",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "头盔",
+    "levels": [
+      90
+    ]
+  },
+  {
+    "id": "2552",
+    "name": "水晶夔帽",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "头盔",
+    "levels": [
+      100
+    ]
+  },
+  {
+    "id": "2553",
+    "name": "翡翠曜冠",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "头盔",
+    "levels": [
+      110
+    ]
+  },
+  {
+    "id": "2554",
+    "name": "金丝黑玉冠",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "头盔",
+    "levels": [
+      120
+    ]
+  },
+  {
+    "id": "2555",
+    "name": "白玉琉璃冠",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "头盔",
+    "levels": [
+      130
+    ]
+  },
+  {
+    "id": "2556",
+    "name": "兽鬼珐琅面",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "头盔",
+    "levels": [
+      140
+    ]
+  },
+  {
+    "id": "2557",
+    "name": "紫金磐龙冠",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "头盔",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "2558",
+    "name": "浑天玄火盔",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "头盔",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "2561",
+    "name": "凤翅金翎",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "发钗",
+    "levels": [
+      90
+    ]
+  },
+  {
+    "id": "2562",
+    "name": "寒雉霜蚕",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "发钗",
+    "levels": [
+      100
+    ]
+  },
+  {
+    "id": "2563",
+    "name": "曜月嵌星",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "发钗",
+    "levels": [
+      110
+    ]
+  },
+  {
+    "id": "2564",
+    "name": "郁金流苏簪",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "发钗",
+    "levels": [
+      120
+    ]
+  },
+  {
+    "id": "2565",
+    "name": "玉翼附蝉翎",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "发钗",
+    "levels": [
+      130
+    ]
+  },
+  {
+    "id": "2566",
+    "name": "鸾羽九凤冠",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "发钗",
+    "levels": [
+      140
+    ]
+  },
+  {
+    "id": "2567",
+    "name": "金珰紫焰冠",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "发钗",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "2568",
+    "name": "乾元鸣凤冕",
+    "subtype": "gear",
+    "slot": "头部",
+    "kind": "发钗",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "2601",
+    "name": "布衣",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "铠甲",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "2602",
+    "name": "皮衣",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "铠甲",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "2603",
+    "name": "鳞甲",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "铠甲",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "2604",
+    "name": "锁子甲",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "铠甲",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "2605",
+    "name": "紧身衣",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "铠甲",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "2606",
+    "name": "钢甲",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "铠甲",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "2607",
+    "name": "夜魔披风",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "铠甲",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "2608",
+    "name": "龙骨甲",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "铠甲",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "2609",
+    "name": "死亡斗篷",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "铠甲",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "2610",
+    "name": "布裙",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "女衣",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "2611",
+    "name": "丝绸长裙",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "女衣",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "2612",
+    "name": "五彩裙",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "女衣",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "2613",
+    "name": "龙鳞羽衣",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "女衣",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "2614",
+    "name": "天香披肩",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "女衣",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "2615",
+    "name": "金缕羽衣",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "女衣",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "2616",
+    "name": "霓裳羽衣",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "女衣",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "2617",
+    "name": "流云素裙",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "女衣",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "2618",
+    "name": "七宝天衣",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "女衣",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "2651",
+    "name": "神谕披风",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "铠甲",
+    "levels": [
+      90
+    ]
+  },
+  {
+    "id": "2652",
+    "name": "珊瑚玉衣",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "铠甲",
+    "levels": [
+      100
+    ]
+  },
+  {
+    "id": "2653",
+    "name": "金蚕披风",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "铠甲",
+    "levels": [
+      110
+    ]
+  },
+  {
+    "id": "2654",
+    "name": "乾坤护心甲",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "铠甲",
+    "levels": [
+      120
+    ]
+  },
+  {
+    "id": "2655",
+    "name": "蝉翼金丝甲",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "铠甲",
+    "levels": [
+      130
+    ]
+  },
+  {
+    "id": "2656",
+    "name": "金丝鱼鳞甲",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "铠甲",
+    "levels": [
+      140
+    ]
+  },
+  {
+    "id": "2657",
+    "name": "紫金磐龙甲",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "铠甲",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "2658",
+    "name": "混元一气甲",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "铠甲",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "2661",
+    "name": "飞天羽衣",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "女衣",
+    "levels": [
+      90
+    ]
+  },
+  {
+    "id": "2662",
+    "name": "穰花翠裙",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "女衣",
+    "levels": [
+      100
+    ]
+  },
+  {
+    "id": "2663",
+    "name": "金蚕丝裙",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "女衣",
+    "levels": [
+      110
+    ]
+  },
+  {
+    "id": "2664",
+    "name": "紫香金乌裙",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "女衣",
+    "levels": [
+      120
+    ]
+  },
+  {
+    "id": "2665",
+    "name": "碧霞彩云衣",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "女衣",
+    "levels": [
+      130
+    ]
+  },
+  {
+    "id": "2666",
+    "name": "金丝蝉翼衫",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "女衣",
+    "levels": [
+      140
+    ]
+  },
+  {
+    "id": "2667",
+    "name": "五彩凤翅衣",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "女衣",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "2668",
+    "name": "鎏金浣月衣",
+    "subtype": "gear",
+    "slot": "衣服",
+    "kind": "女衣",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "2701",
+    "name": "布鞋",
+    "subtype": "gear",
+    "slot": "鞋",
+    "kind": "鞋",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "2702",
+    "name": "牛皮靴",
+    "subtype": "gear",
+    "slot": "鞋",
+    "kind": "鞋",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "2703",
+    "name": "马靴",
+    "subtype": "gear",
+    "slot": "鞋",
+    "kind": "鞋",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "2704",
+    "name": "侠客履",
+    "subtype": "gear",
+    "slot": "鞋",
+    "kind": "鞋",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "2705",
+    "name": "神行靴",
+    "subtype": "gear",
+    "slot": "鞋",
+    "kind": "鞋",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "2706",
+    "name": "绿靴",
+    "subtype": "gear",
+    "slot": "鞋",
+    "kind": "鞋",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "2707",
+    "name": "追星踏月",
+    "subtype": "gear",
+    "slot": "鞋",
+    "kind": "鞋",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "2708",
+    "name": "九州履",
+    "subtype": "gear",
+    "slot": "鞋",
+    "kind": "鞋",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "2709",
+    "name": "万里追云履",
+    "subtype": "gear",
+    "slot": "鞋",
+    "kind": "鞋",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "2751",
+    "name": "踏雪无痕",
+    "subtype": "gear",
+    "slot": "鞋",
+    "kind": "鞋",
+    "levels": [
+      90
+    ]
+  },
+  {
+    "id": "2752",
+    "name": "平步青云",
+    "subtype": "gear",
+    "slot": "鞋",
+    "kind": "鞋",
+    "levels": [
+      100
+    ]
+  },
+  {
+    "id": "2753",
+    "name": "追云逐电",
+    "subtype": "gear",
+    "slot": "鞋",
+    "kind": "鞋",
+    "levels": [
+      110
+    ]
+  },
+  {
+    "id": "2754",
+    "name": "乾坤天罡履",
+    "subtype": "gear",
+    "slot": "鞋",
+    "kind": "鞋",
+    "levels": [
+      120
+    ]
+  },
+  {
+    "id": "2755",
+    "name": "七星逐月靴",
+    "subtype": "gear",
+    "slot": "鞋",
+    "kind": "鞋",
+    "levels": [
+      130
+    ]
+  },
+  {
+    "id": "2756",
+    "name": "碧霞流云履",
+    "subtype": "gear",
+    "slot": "鞋",
+    "kind": "鞋",
+    "levels": [
+      140
+    ]
+  },
+  {
+    "id": "2757",
+    "name": "金丝逐日履",
+    "subtype": "gear",
+    "slot": "鞋",
+    "kind": "鞋",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "2758",
+    "name": "辟尘分光履",
+    "subtype": "gear",
+    "slot": "鞋",
+    "kind": "鞋",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "2801",
+    "name": "护身符",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "2802",
+    "name": "五色飞石",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "2803",
+    "name": "珍珠链",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "2804",
+    "name": "骷髅吊坠",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "2805",
+    "name": "苍魂珠",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "2806",
+    "name": "江湖夜雨",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "2807",
+    "name": "九宫坠",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "2808",
+    "name": "荧光坠子",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "2809",
+    "name": "高速之星",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "2810",
+    "name": "风月宝链",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "2811",
+    "name": "八卦坠",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "2812",
+    "name": "碧水青龙",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "2813",
+    "name": "鬼牙攫魂",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "2814",
+    "name": "万里卷云",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "2815",
+    "name": "疾风之铃",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "2851",
+    "name": "七彩玲珑",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      90
+    ]
+  },
+  {
+    "id": "2852",
+    "name": "黄玉琉佩",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      100
+    ]
+  },
+  {
+    "id": "2853",
+    "name": "鸾飞凤舞",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      110
+    ]
+  },
+  {
+    "id": "2854",
+    "name": "衔珠金凤佩",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      120
+    ]
+  },
+  {
+    "id": "2855",
+    "name": "七璜珠玉佩",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      130
+    ]
+  },
+  {
+    "id": "2856",
+    "name": "鎏金点翠佩",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      140
+    ]
+  },
+  {
+    "id": "2857",
+    "name": "紫金碧玺佩",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "2858",
+    "name": "落霞陨星坠",
+    "subtype": "gear",
+    "slot": "项链",
+    "kind": "项链",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "2901",
+    "name": "腰带",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      0
+    ]
+  },
+  {
+    "id": "2902",
+    "name": "缎带",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      10
+    ]
+  },
+  {
+    "id": "2903",
+    "name": "银腰带",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      20
+    ]
+  },
+  {
+    "id": "2904",
+    "name": "水晶腰带",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "2905",
+    "name": "玉树腰带",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      30
+    ]
+  },
+  {
+    "id": "2906",
+    "name": "琥珀腰链",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "2907",
+    "name": "白面狼牙",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      40
+    ]
+  },
+  {
+    "id": "2908",
+    "name": "乱牙咬",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "2909",
+    "name": "魔童大牙",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      50
+    ]
+  },
+  {
+    "id": "2910",
+    "name": "攫魂铃",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "2911",
+    "name": "双魂引",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "2912",
+    "name": "兽王腰带",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "2913",
+    "name": "百窜云",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      70
+    ]
+  },
+  {
+    "id": "2914",
+    "name": "八卦锻带",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "2915",
+    "name": "圣王坠",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "2951",
+    "name": "幻彩玉带",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      90
+    ]
+  },
+  {
+    "id": "2952",
+    "name": "珠翠玉环",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      100
+    ]
+  },
+  {
+    "id": "2953",
+    "name": "金蟾含珠",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      110
+    ]
+  },
+  {
+    "id": "2954",
+    "name": "乾坤紫玉带",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      120
+    ]
+  },
+  {
+    "id": "2955",
+    "name": "琉璃寒玉带",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      130
+    ]
+  },
+  {
+    "id": "2956",
+    "name": "蝉翼鱼佩带",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      140
+    ]
+  },
+  {
+    "id": "2957",
+    "name": "磐龙凤翔带",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      150
+    ]
+  },
+  {
+    "id": "2958",
+    "name": "紫霄云芒带",
+    "subtype": "gear",
+    "slot": "腰带",
+    "kind": "腰带",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "27001",
+    "name": "枫华戒",
+    "subtype": "ornament",
+    "slot": "戒指",
+    "kind": "戒指",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "27002",
+    "name": "芙蓉戒",
+    "subtype": "ornament",
+    "slot": "戒指",
+    "kind": "戒指",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "27003",
+    "name": "金麟绕",
+    "subtype": "ornament",
+    "slot": "戒指",
+    "kind": "戒指",
+    "levels": [
+      100
+    ]
+  },
+  {
+    "id": "27004",
+    "name": "悦碧水",
+    "subtype": "ornament",
+    "slot": "戒指",
+    "kind": "戒指",
+    "levels": [
+      120
+    ]
+  },
+  {
+    "id": "27005",
+    "name": "九曜光华",
+    "subtype": "ornament",
+    "slot": "戒指",
+    "kind": "戒指",
+    "levels": [
+      140
+    ]
+  },
+  {
+    "id": "27006",
+    "name": "太虚渺云",
+    "subtype": "ornament",
+    "slot": "戒指",
+    "kind": "戒指",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "27101",
+    "name": "翠叶环",
+    "subtype": "ornament",
+    "slot": "耳饰",
+    "kind": "耳饰",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "27102",
+    "name": "明月珰",
+    "subtype": "ornament",
+    "slot": "耳饰",
+    "kind": "耳饰",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "27103",
+    "name": "玉蝶翩",
+    "subtype": "ornament",
+    "slot": "耳饰",
+    "kind": "耳饰",
+    "levels": [
+      100
+    ]
+  },
+  {
+    "id": "27104",
+    "name": "点星芒",
+    "subtype": "ornament",
+    "slot": "耳饰",
+    "kind": "耳饰",
+    "levels": [
+      120
+    ]
+  },
+  {
+    "id": "27105",
+    "name": "凤羽流苏",
+    "subtype": "ornament",
+    "slot": "耳饰",
+    "kind": "耳饰",
+    "levels": [
+      140
+    ]
+  },
+  {
+    "id": "27106",
+    "name": "焰云霞珠",
+    "subtype": "ornament",
+    "slot": "耳饰",
+    "kind": "耳饰",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "27201",
+    "name": "香木镯",
+    "subtype": "ornament",
+    "slot": "手镯",
+    "kind": "手镯",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "27202",
+    "name": "翡玉镯",
+    "subtype": "ornament",
+    "slot": "手镯",
+    "kind": "手镯",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "27203",
+    "name": "墨影扣",
+    "subtype": "ornament",
+    "slot": "手镯",
+    "kind": "手镯",
+    "levels": [
+      100
+    ]
+  },
+  {
+    "id": "27204",
+    "name": "花映月",
+    "subtype": "ornament",
+    "slot": "手镯",
+    "kind": "手镯",
+    "levels": [
+      120
+    ]
+  },
+  {
+    "id": "27205",
+    "name": "金水菩提",
+    "subtype": "ornament",
+    "slot": "手镯",
+    "kind": "手镯",
+    "levels": [
+      140
+    ]
+  },
+  {
+    "id": "27206",
+    "name": "浮雪幻音",
+    "subtype": "ornament",
+    "slot": "手镯",
+    "kind": "手镯",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "27301",
+    "name": "芝兰佩",
+    "subtype": "ornament",
+    "slot": "佩饰",
+    "kind": "佩饰",
+    "levels": [
+      60
+    ]
+  },
+  {
+    "id": "27302",
+    "name": "逸云佩",
+    "subtype": "ornament",
+    "slot": "佩饰",
+    "kind": "佩饰",
+    "levels": [
+      80
+    ]
+  },
+  {
+    "id": "27303",
+    "name": "莲音玦",
+    "subtype": "ornament",
+    "slot": "佩饰",
+    "kind": "佩饰",
+    "levels": [
+      100
+    ]
+  },
+  {
+    "id": "27304",
+    "name": "相思染",
+    "subtype": "ornament",
+    "slot": "佩饰",
+    "kind": "佩饰",
+    "levels": [
+      120
+    ]
+  },
+  {
+    "id": "27305",
+    "name": "玄龙苍珀",
+    "subtype": "ornament",
+    "slot": "佩饰",
+    "kind": "佩饰",
+    "levels": [
+      140
+    ]
+  },
+  {
+    "id": "27306",
+    "name": "碧海青天",
+    "subtype": "ornament",
+    "slot": "佩饰",
+    "kind": "佩饰",
+    "levels": [
+      160
+    ]
+  },
+  {
+    "id": "61717",
+    "name": "上古玉魄·阴",
+    "subtype": "jade",
+    "slot": "阴玉",
+    "kind": "阴玉",
+    "levels": []
+  },
+  {
+    "id": "61718",
+    "name": "上古玉魄·阳",
+    "subtype": "jade",
+    "slot": "阳玉",
+    "kind": "阳玉",
+    "levels": []
+  }
+]

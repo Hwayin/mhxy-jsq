@@ -1,0 +1,89 @@
+<template>
+  <view class="page">
+    <text class="eyebrow">本地数据 · 自己掌握</text><text class="title">数据与备份</text>
+    <text class="subtitle">数据保存在当前设备，换机前请导出备份。</text>
+    <view class="card"><text class="section-title">本地账本</text><text class="subtitle">{{ status }}</text><text class="muted">每次修改前自动保留一个上一版本。</text><button class="secondary" @click="restorePrevious">恢复上一版本</button></view>
+    <view class="card"><text class="section-title">导出备份</text><text class="subtitle">复制完整 JSON 文本，保存到自己的文件中。</text><button class="primary" @click="copyBackup">复制账本备份</button><text class="muted">备份包含账号别名、角色和明细信息，请妥善保存。</text></view>
+    <view class="card"><text class="section-title">导入备份</text><text class="subtitle">粘贴之前导出的完整文本，检查后恢复。</text><textarea class="textarea backup-input" :value="raw" @input="raw = $event.detail.value" @blur="raw = $event.detail.value" :maxlength="10000000" placeholder="粘贴梦幻多开账本的 JSON 备份" /><button class="secondary" @click="restoreBackup">检查并导入</button></view>
+    <!-- #ifdef WEB -->
+    <button class="secondary" @click="chooseJsonFile">从 JSON 文件导入</button>
+    <!-- #endif -->
+    <view class="card"><text class="section-title">体验五开示例</text><text class="subtitle">5 个账号、5 个角色、15 笔资产，所有价格均为虚构。</text><button class="secondary" @click="loadDemo">载入示例数据</button><text class="muted">仅空账本可载入；示例可编辑或删除。</text></view>
+    <text v-if="error" class="error">{{ error }}</text>
+    <view class="notice"><text class="notice-text">卸载应用或清除应用数据会移除账本；复制备份后请保存到设备之外。</text></view>
+    <view class="spacer"></view>
+  </view>
+</template>
+<script setup>
+import { summarize, exportBackup, importBackup, demoLedger, errorMessage, parseRoleBackup, mergeRoleBackup } from '../../lib/ledger.uts'
+import type { Ledger } from '../../lib/ledger.uts'
+import { loadLedger, saveLedger, previousLedger } from '../../lib/storage.uts'
+const raw = ref('')
+const error = ref('')
+const status = ref('')
+function refresh() {
+  try { const s = summarize(loadLedger()); status.value = s.accountCount + ' 个账号 · ' + s.roleCount + ' 个角色 · ' + s.assetCount + ' 笔明细'; error.value = '' }
+  catch (e) { status.value = '数据需要恢复'; error.value = errorMessage(e) }
+}
+onPageShow(refresh)
+function copyBackup() {
+  try { const backup = exportBackup(loadLedger()); uni.setClipboardData({ data: backup, success: () => { error.value = '' }, fail: () => { error.value = '复制失败，请检查剪贴板权限后重试' } }) }
+  catch (e) { error.value = errorMessage(e) }
+}
+function confirmRestore(data: Ledger, title: string) {
+  const s = summarize(data)
+  uni.showModal({ title, content: '将用 ' + s.accountCount + ' 个账号、' + s.roleCount + ' 个角色、' + s.assetCount + ' 笔明细替换当前账本。建议先复制当前备份。', success: res => {
+    if (!res.confirm) return
+    try { saveLedger(data, true); raw.value = ''; refresh(); uni.showToast({ title: '恢复成功', icon: 'success' }) }
+    catch (e) { error.value = '恢复失败：' + errorMessage(e) }
+  } })
+}
+function restoreBackup() {
+  try {
+    const content = raw.value.trim()
+    const data = importBackup(content)
+    const meta = JSON.parse(content) as { scope?: string }
+    if (meta.scope === 'role') {
+      const backup = parseRoleBackup(content)
+      const role = backup.data.roles[0]
+      uni.showModal({ title: '导入角色备份？', content: '将恢复「' + role.name + '」及其 ' + backup.data.assets.length + ' 笔明细。同 ID 角色会被替换，其他角色会保留。', success: res => {
+        if (!res.confirm) return
+        try { saveLedger(mergeRoleBackup(loadLedger(), content)); raw.value = ''; refresh(); uni.showToast({ title: '角色已恢复', icon: 'success' }) }
+        catch (e) { error.value = '恢复失败：' + errorMessage(e) }
+      } })
+    } else { confirmRestore(data, '导入备份？') }
+  } catch (e) { error.value = errorMessage(e) }
+}
+// #ifdef WEB
+function chooseJsonFile() {
+  const input = document.createElement('input')
+  input.type = 'file'; input.accept = '.json,application/json'
+  input.onchange = async () => {
+    const file = input.files?.[0]
+    if (!file) return
+    if (file.size > 10000000) { error.value = '备份文件超过大小限制'; return }
+    try { raw.value = await file.text(); restoreBackup() }
+    catch (e) { error.value = errorMessage(e) }
+  }
+  input.click()
+}
+// #endif
+function restorePrevious() { try { confirmRestore(previousLedger(), '恢复上一版本？') } catch (e) { error.value = errorMessage(e) } }
+function loadDemo() {
+  try {
+    const data = loadLedger()
+    if (data.accounts.length || data.roles.length || data.assets.length) throw new Error('仅空账本可载入示例，请先备份并删除已有账号')
+    uni.showModal({ title: '载入虚构示例？', content: '用于体验五开队伍的成本统计，示例金额不代表实际行情。', success: res => {
+      if (!res.confirm) return
+      try {
+        const current = loadLedger()
+        if (current.accounts.length) throw new Error('账本已有数据，未载入示例')
+        saveLedger(demoLedger()); refresh(); uni.switchTab({ url: '/pages/dashboard/index' })
+      } catch (e) { error.value = errorMessage(e) }
+    } })
+  } catch (e) { error.value = errorMessage(e) }
+}
+</script>
+<style>
+.backup-input { margin-top: 24rpx; height: 240rpx; }
+</style>

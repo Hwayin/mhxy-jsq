@@ -1,0 +1,12 @@
+{
+  "appId": "__UNI__A9783A2",
+  "packageName": "com.mhxy.costledger",
+  "alias": "mhxyledger",
+  "subject": "C=CN\nO=MHXY Cost Ledger\nCN=MHXY Cost Ledger",
+  "sha1": "4C:84:18:79:ED:34:D5:69:B3:4A:E5:8F:C5:A9:49:40:42:5B:88:34",
+  "sha256": "60:07:D1:04:3C:C4:F0:4F:7F:90:76:2F:DC:49:92:5A:E7:FA:B7:68:C9:F0:BA:66:B2:45:19:EA:B8:D1:38:99",
+  "validFrom": "Oct  8 10:24:07 2026 GMT",
+  "validTo": "Sep 14 10:24:07 2126 GMT",
+  "keyAlgorithm": "rsa",
+  "keyBits": 2048
+}

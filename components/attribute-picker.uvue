@@ -1,0 +1,80 @@
+<template>
+  <view class="choice-overlay">
+    <view class="choice-mask" @click="emit('close')"></view>
+    <view class="choice-panel" :style="{ paddingBottom: panelPadding }">
+      <view class="between"><text class="section-title">{{ title }}</text><text class="link" @click="emit('close')">取消</text></view>
+      <text class="muted">{{ multiple ? '可多选，选好后点击确认' : '点击选项即可应用' }}</text>
+      <input class="field choice-search" :value="query" @input="query = $event.detail.value" @blur="query = $event.detail.value" placeholder="搜索名称或分类" maxlength="100" />
+      <text v-if="groups.length > 1" class="muted group-hint">分类 · 左右滑动选择</text>
+      <scroll-view v-if="groups.length > 1" direction="horizontal" :show-scrollbar="false" class="choice-groups"><text v-for="item in groups" :key="item" :class="['choice-group', group === item ? 'choice-group-active' : '']" @click="group = item">{{ item }}</text></scroll-view>
+      <scroll-view direction="vertical" class="choice-list">
+        <view class="choice-row" @click="clear"><text class="body">未配置 / 清空</text><text v-if="!draft.length" class="link">✓</text></view>
+        <view v-for="item in filtered" :key="item.group + item.value" :class="['choice-row', draft.includes(item.value) ? 'choice-selected' : '']" @click="toggle(item.value)"><ItemIcon v-if="showItemIcons" :item-id="item.value" :item-name="item.label" label="物" :small="true" /><view class="choice-caption"><text class="body">{{ item.label }}</text><text v-if="item.group" class="muted">{{ item.group }}</text></view><text class="link">{{ draft.includes(item.value) ? '✓' : multiple ? '＋' : '›' }}</text></view>
+        <text v-if="!filtered.length" class="muted choice-empty">没有找到匹配选项</text>
+      </scroll-view>
+      <view v-if="allowCustom" class="choice-custom"><text v-if="!customOpen" class="link" @click="customOpen = true">没有所需选项？补充一个</text><view v-else><input class="field" :value="custom" @input="custom = $event.detail.value" @blur="custom = $event.detail.value" placeholder="补充名称（最多 100 字）" maxlength="100" /><text class="link" @click="addCustom">添加补充选项</text></view></view>
+      <button v-if="multiple" class="primary" @click="emit('confirm', draft.slice())">确认（{{ draft.length }}项）</button>
+    </view>
+  </view>
+</template>
+<script setup>
+import type { EquipmentChoice } from '../lib/equipment-options.uts'
+import ItemIcon from './item-icon.uvue'
+import { safeBottomPadding } from '../lib/ui-layout.uts'
+const panelPadding = ref(safeBottomPadding(24))
+onResize(() => { panelPadding.value = safeBottomPadding(24) })
+const props = defineProps<{ title: string; options: EquipmentChoice[]; values: string[]; multiple: boolean; allowCustom: boolean; showItemIcons?: boolean }>()
+const emit = defineEmits(['close', 'confirm'])
+const query = ref('')
+const group = ref('全部')
+const custom = ref('')
+const customOpen = ref(false)
+const draft = ref(props.values.slice())
+const allOptions = computed(() => [
+  ...props.values.filter(value => !props.options.some(o => o.value === value)).map(value => ({ value, label: value, group: '已保存' })),
+  ...props.options
+])
+// 物品按装备种类分组，等级仍展示在条目中，避免一个种类重复占据多个标签。
+function optionGroup(option: EquipmentChoice): string {
+  const separator = option.group.indexOf(' · ')
+  return props.showItemIcons && separator >= 0 ? option.group.slice(0, separator) : option.group
+}
+const groups = computed(() => ['全部', ...Array.from(new Set(allOptions.value.map(optionGroup).filter(g => !!g)))])
+const filtered = computed(() => allOptions.value.filter(o => (group.value === '全部' || optionGroup(o) === group.value) && (o.label + o.value + o.group).toLowerCase().includes(query.value.trim().toLowerCase())))
+function toggle(value: string) {
+  if (!props.multiple) { emit('confirm', [value]); return }
+  draft.value = draft.value.includes(value) ? draft.value.filter(v => v !== value) : [...draft.value, value]
+}
+function clear() { draft.value = []; if (!props.multiple) emit('confirm', []) }
+function addCustom() {
+  const value = custom.value.trim()
+  if (!value) return
+  if (!props.multiple) { emit('confirm', [value]); return }
+  if (!draft.value.includes(value)) draft.value.push(value)
+  custom.value = ''; customOpen.value = false
+}
+</script>
+<style>
+/* 组件样式隔离，显式声明文字和表单样式以保持 App / Web 一致。 */
+.between { flex-direction: row; align-items: center; justify-content: space-between; }
+.section-title { font-size: 30rpx; color: #203a33; font-weight: bold; }
+.body { color: #203a33; font-size: 28rpx; line-height: 42rpx; }
+.muted { color: #6d7e74; font-size: 24rpx; line-height: 38rpx; }
+.link { color: #287565; font-size: 26rpx; padding: 10rpx 0; }
+.field { background-color: #f0f1e9; border-radius: 14rpx; padding: 20rpx; font-size: 28rpx; color: #203a33; height: 84rpx; }
+.primary { color: #fffefb; background-color: #287565; border-radius: 16rpx; font-size: 28rpx; margin-top: 24rpx; }
+.choice-overlay { position: fixed; left: 0; right: 0; top: 0; bottom: 0; z-index: 100; justify-content: flex-end; }
+.choice-mask { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background-color: rgba(25, 32, 54, 0.45); }
+.choice-panel { background-color: #fffefb; border-radius: 32rpx 32rpx 0 0; padding: 28rpx 28rpx 44rpx; }
+.choice-search { margin-top: 18rpx; margin-bottom: 16rpx; }
+.group-hint { font-size: 22rpx; margin-bottom: 8rpx; }
+.choice-groups { width: 100%; height: 88rpx; flex-direction: row; }
+.choice-group { flex-shrink: 0; padding: 12rpx 20rpx; margin-right: 10rpx; font-size: 24rpx; color: #6d7e74; background-color: #f0f1e9; border-radius: 24rpx; }
+.choice-group-active { color: #287565; background-color: #e7f0ea; }
+.choice-list { height: 520rpx; }
+.choice-row { flex-direction: row; justify-content: space-between; align-items: center; padding: 20rpx 16rpx; border-bottom: 1rpx solid #e8ebe2; }
+.choice-selected { background-color: #e7f0ea; }
+.choice-caption { flex: 1; margin-right: 12rpx; }
+.choice-empty { padding: 32rpx 16rpx; }
+.choice-custom { margin-top: 14rpx; margin-bottom: 14rpx; }
+</style>

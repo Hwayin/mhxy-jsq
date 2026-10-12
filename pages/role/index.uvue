@@ -1,0 +1,184 @@
+<template>
+  <view class="page page-with-dock">
+    <text v-if="error" class="error">{{ error }}</text>
+    <view v-if="info && !error">
+      <view class="between role-header">
+        <view class="row grow"><view class="seal"><text class="seal-text">{{ info?.role.school.slice(0, 1) }}</text></view><view class="grow"><text class="title">{{ info?.role.name }}</text><text class="subtitle">{{ info?.role.server }} · {{ info?.role.level }}级 · {{ info?.role.school }}</text></view></view>
+        <text class="role-menu" @click="roleMenu">•••</text>
+      </view>
+      <view class="origin-tag"><text class="tag">{{ purchaseLabel(info?.role.purchaseMode || '') }}</text><text v-if="info?.role.gameId" class="muted role-id">ID {{ info?.role.gameId }}</text></view>
+      <view class="hero role-hero"><image class="hero-cloud" src="/static/ui/cloud.png" mode="aspectFit" /><text class="hero-label">角色累计投入</text><text class="hero-money">{{ money(info?.total || 0) }}</text><text class="hero-note">{{ info?.role.purchaseMode === 'self' ? '基础' : '购号' }} {{ money(info?.role.purchaseCents || 0) }} ＋ 新增 {{ money(info?.extra || 0) }}</text></view>
+      <view class="summary-grid"><view v-for="item in info?.breakdown || []" :key="item.key" class="summary-card" @click="selected = item.key"><text class="summary-label">{{ item.key === 'equipment' ? '装备' : item.key === 'other' ? '其他' : item.label }}</text><text class="summary-money" :style="{ color: item.color }">{{ money(item.cents) }}</text><text class="summary-caption">新增 · {{ item.count }}笔</text><text v-if="item.includedCents > 0" class="summary-caption">随号参考 {{ money(item.includedCents) }}</text></view></view>
+      <text v-if="exportState" class="muted export-message">{{ exportState }}</text><text v-if="exportError" class="error">{{ exportError }}</text>
+      <view class="tabs"><text v-for="cat in categories" :key="cat.key" :class="['tab', selected === cat.key ? 'tab-active' : '']" @click="selected = cat.key">{{ cat.label }}</text></view>
+      <view class="subtype-filters"><text :class="['filter-chip', !subtype ? 'filter-chip-active' : '']" @click="subtype = ''">全部</text><text v-for="option in subtypeOptions" :key="option.key" :class="['filter-chip', subtype === option.key ? 'filter-chip-active' : '']" @click="subtype = option.key">{{ option.label }}</text></view>
+      <view v-if="selected === 'equipment'" class="coverage-panel">
+        <view class="between" @click="coverageOpen = !coverageOpen"><text class="coverage-label">部位记录</text><text class="muted coverage-summary">{{ coverage.map(item => item.count + '/' + item.total).join(' · ') }}</text><text class="coverage-arrow">{{ coverageOpen ? '⌃' : '⌄' }}</text></view>
+        <view v-if="coverageOpen" class="coverage-detail"><text class="muted">仅表示账本记录情况，不代表实际缺少装备。</text><text v-for="item in coverage" :key="item.key" class="muted">{{ item.label }} {{ item.count }}/{{ item.total }} · {{ item.missing.length ? '未记录：' + item.missing.join('、') : '部位已记录齐全' }}</text></view>
+        <text v-if="legacySetCount" class="notice-text">{{ legacySetCount }}笔旧组合待逐件重录。</text>
+      </view>
+      <view v-if="compared.length" class="comparison-panel"><view class="between"><text class="section-title">同部位装备对比</text><text class="link" @click="compareIds = []">清空对比</text></view><text v-if="compared.length === 1" class="muted">再选择一件同部位装备，比较成品属性与成本。</text><scroll-view direction="horizontal" class="comparison-scroll"><view class="comparison-table"><view class="compare-row"><text class="compare-label">项目</text><text v-for="(asset,index) in compared" :key="asset.id" class="compare-cell">方案{{ index + 1 }} · {{ asset.attributes?.itemName || equipmentPosition(asset) || subtypeLabel(asset) }} · {{ money(asset.costCents) }}</text></view><view v-for="row in compareRows" :key="row.key" class="compare-row"><text class="compare-label">{{ row.label }}</text><text v-for="(cell,index) in row.cells" :key="index" class="compare-cell">{{ cell }}</text></view></view></scroll-view></view>
+      <view class="between section"><text class="section-title">{{ selectedLabel }} · {{ assets.length }} 笔</text><text v-if="selected === 'equipment'" class="link focus-action" @click="chooseCardFocus">{{ focusLabel }}关注 ›</text></view>
+      <text class="muted list-caption">新增投入 {{ money(filteredTotal) }}{{ filteredIncluded ? ' · 随号参考 ' + money(filteredIncluded) : '' }}</text>
+      <view v-if="!assets.length" class="card empty"><text class="body">还没有{{ selectedLabel }}明细</text><text class="subtitle">记下实际购入金额，慢慢补齐配置。</text></view>
+      <view v-for="asset in assets" :key="asset.id" :id="'asset-' + asset.id" class="card asset-card" @click="viewAsset(asset.id)">
+        <view class="row asset-heading"><ItemIcon :item-id="asset.attributes?.itemId || ''" :item-name="asset.attributes?.itemName || ''" :label="equipmentPosition(asset) || subtypeLabel(asset)" /><view class="grow asset-caption"><text class="section-title asset-title">{{ equipmentCardTitle(asset) }}</text><view class="asset-meta"><text class="asset-type">{{ subtypeLabel(asset) }}</text><text class="tag asset-tag">{{ asset.included ? '随号已含' : '计入新增' }}</text></view></view><text class="money asset-money">{{ money(asset.costCents) }}</text></view>
+        <text v-if="asset.purchaseKind === 'set'" class="muted">{{ asset.category === 'equipment' ? '旧组合 · 待逐件重录' : '组合购入' }}{{ asset.quantity ? ' · ' + asset.quantity + '件' : '' }}</text>
+        <view v-if="asset.category === 'equipment'" class="card-summary"><view v-for="metric in summaryFor(asset)" :key="metric.key" class="asset-metric between"><text class="muted">{{ metric.label }}</text><text class="body">{{ metric.value == null ? '待完善' : valueText(metric.value,metric.unit) }}</text></view><text v-if="!summaryFor(asset).length" class="muted">暂无关注属性 · 详情中查看配置</text></view>
+        <view v-else class="card-summary"><text v-if="asset.contents" class="body">{{ asset.contents }}</text><text v-if="attributeText(asset)" class="muted">{{ attributeText(asset) }}</text><text v-if="asset.detail" class="body">{{ asset.detail }}</text><text v-if="asset.date" class="muted">{{ asset.date }}</text></view>
+        <view class="asset-actions"><text v-if="asset.category === 'equipment'" class="compare-action" @click.stop="toggleComparison(asset)">{{ compareIds.includes(asset.id) ? '移出对比' : '加入对比' }}</text><text class="link detail-action" @click.stop="viewAsset(asset.id)">详情 ›</text><text class="asset-more" @click.stop="assetMenu(asset)">•••</text></view>
+      </view>
+      <view class="action-dock" :style="{ paddingBottom: dockPadding }"><button class="primary dock-button" @click="addAsset">＋ 记一笔</button></view>
+    </view>
+    <view v-else-if="!error" class="card empty"><text class="body">角色不存在或已删除</text></view>
+  </view>
+</template>
+<script setup>
+import { safeBottomPadding } from '../../lib/ui-layout.uts'
+const dockPadding = ref(safeBottomPadding())
+onResize(() => { dockPadding.value = safeBottomPadding() })
+import { emptyLedger, CATEGORIES, SUBTYPES, purchaseLabel, purchaseHint, subtypeLabel, assetSubtype, isEquipmentSet, equipmentPosition, equipmentCoverage, attributeText, roleSummary, money, removeRecord, errorMessage } from '../../lib/ledger.uts'
+import type { Asset } from '../../lib/ledger.uts'
+import { comparisonMetrics, valueText } from '../../lib/equipment-calc.uts'
+import { CARD_FOCUSES, cardFocusLabel, equipmentCardTitle, equipmentCardMetrics } from '../../lib/equipment-display.uts'
+import ItemIcon from '../../components/item-icon.uvue'
+import { loadLedger, saveLedger } from '../../lib/storage.uts'
+import { exportRoleTestFile } from '../../lib/role-export.uts'
+const id = ref('')
+const data = ref(emptyLedger())
+const error = ref('')
+const exporting = ref(false)
+const exportState = ref('')
+const exportError = ref('')
+const exportButtonText = ref('复制角色 JSON')
+// #ifdef WEB
+exportButtonText.value = '导出测试 JSON'
+// #endif
+const coverageOpen = ref(false)
+const selected = ref('equipment')
+const subtype = ref('')
+const compareIds = ref<string[]>([])
+const cardFocus = ref('auto')
+const categories = CATEGORIES
+const info = computed(() => roleSummary(data.value, id.value))
+const categoryAssets = computed(() => info.value ? info.value.assets.filter(a => a.category === selected.value) : [])
+const assets = computed(() => categoryAssets.value.filter(a => !subtype.value || (subtype.value === 'unspecified' ? !a.subtype : assetSubtype(a) === subtype.value)))
+const subtypeOptions = computed(() => [
+  ...SUBTYPES.filter(s => s.category === selected.value).map(s => ({ key: s.key, label: s.label })),
+  ...(categoryAssets.value.some(a => !a.subtype) ? [{ key: 'unspecified', label: '未细分' }] : [])
+])
+const focusLabel = computed(() => info.value ? cardFocusLabel(info.value.role,cardFocus.value) : '')
+const compared = computed(() => (info.value?.assets || []).filter(a => compareIds.value.includes(a.id)))
+const compareRows = computed(() => {
+  const role = info.value?.role
+  if (!role) return []
+  const columns = compared.value.map(a => comparisonMetrics(a,role))
+  const keys = Array.from(new Set(columns.flatMap(c => c.map(m => m.key))))
+  return keys.map(key => ({ key, label: columns.flat().find(m => m.key === key)?.label || key, cells: columns.map(c => { const metric = c.find(m => m.key === key); return metric ? valueText(metric.value,metric.unit) : '—' }) }))
+})
+function summaryFor(asset: Asset) { const role = info.value?.role; return role ? equipmentCardMetrics(asset,role,cardFocus.value) : [] }
+function chooseCardFocus() {
+  uni.showActionSheet({itemList:CARD_FOCUSES.map(f => f.label),success:res => { cardFocus.value = CARD_FOCUSES[res.tapIndex].key }})
+}
+function toggleComparison(asset: Asset) {
+  if (compareIds.value.includes(asset.id)) { compareIds.value = compareIds.value.filter(id => id !== asset.id); return }
+  if (isEquipmentSet(asset)) { uni.showToast({title:'组合记录请先逐件重录',icon:'none'}); return }
+  if (!equipmentPosition(asset)) { uni.showToast({title:'请先设置具体部位',icon:'none'}); return }
+  const other = compared.value[0]
+  if (other && (assetSubtype(other) !== assetSubtype(asset) || equipmentPosition(other) !== equipmentPosition(asset))) { uni.showToast({title:'请选择同一部位进行对比',icon:'none'}); return }
+  if (compareIds.value.length >= 2) { uni.showToast({title:'先移出一件再加入新方案',icon:'none'}); return }
+  compareIds.value.push(asset.id)
+}
+const coverage = computed(() => equipmentCoverage(info.value?.assets || []))
+const legacySetCount = computed(() => (info.value?.assets || []).filter(isEquipmentSet).length)
+const filteredTotal = computed(() => assets.value.filter(a => !a.included).reduce((sum, a) => sum + a.costCents, 0))
+const filteredIncluded = computed(() => assets.value.filter(a => a.included).reduce((sum, a) => sum + a.costCents, 0))
+watch(selected, () => { subtype.value = '' })
+const selectedLabel = computed(() => categories.find(c => c.key === selected.value)?.label || '资产')
+onLoad(options => { id.value = options.id || '' })
+onPageShow(() => { try { data.value = loadLedger(); error.value = '' } catch (e) { error.value = errorMessage(e) } })
+function roleMenu() {
+  uni.showActionSheet({ itemList: ['编辑角色 / 换算设置', '起号与计价说明', exportButtonText.value, '删除角色'], success: res => {
+    if (res.tapIndex === 0) editRole()
+    if (res.tapIndex === 1 && info.value) uni.showModal({ title: '起号与计价', content: purchaseHint(info.value.role.purchaseMode) + (info.value.role.note ? '\n备注：' + info.value.role.note : ''), showCancel: false })
+    if (res.tapIndex === 2) exportTestJson()
+    if (res.tapIndex === 3) removeRole()
+  } })
+}
+function assetMenu(asset: Asset) { uni.showActionSheet({ itemList: ['编辑明细', '删除明细'], success: res => { if (res.tapIndex === 0) editAsset(asset.id); else removeAsset(asset) } }) }
+function editRole() { uni.navigateTo({ url: '/pages/editor/index?kind=roles&id=' + encodeURIComponent(id.value) }) }
+async function exportTestJson() {
+  if (exporting.value) return
+  exporting.value = true; exportError.value = ''; exportState.value = ''
+  try { const current = loadLedger(); exportState.value = await exportRoleTestFile(current, id.value) }
+  catch (e) { exportError.value = errorMessage(e) }
+  finally { exporting.value = false }
+}
+function addAsset() { uni.navigateTo({ url: '/pages/editor/index?kind=assets&parent=' + encodeURIComponent(id.value) + '&category=' + selected.value + (subtype.value && subtype.value !== 'unspecified' ? '&subtype=' + subtype.value : '') }) }
+function editAsset(assetId: string) { uni.navigateTo({ url: '/pages/editor/index?kind=assets&id=' + encodeURIComponent(assetId) }) }
+function viewAsset(assetId: string) { uni.navigateTo({ url: '/pages/asset/index?id=' + encodeURIComponent(assetId) }) }
+function removeAsset(asset: Asset) { confirmDelete('assets', asset.id, '删除「' + asset.name + '」？') }
+function removeRole() { if (info.value) confirmDelete('roles', id.value, '将删除此角色及其 ' + info.value.assets.length + ' 笔明细。') }
+function confirmDelete(kind: string, recordId: string, content: string) {
+  uni.showModal({ title: '确认删除', content, success: res => {
+    if (!res.confirm) return
+    try { data.value = saveLedger(removeRecord(loadLedger(), kind, recordId)); if (kind === 'roles') uni.navigateBack() }
+    catch (e) { error.value = errorMessage(e) }
+  } })
+}
+</script>
+<style>
+.comparison-panel { margin-top: 20rpx; padding: 20rpx; background-color: #fffefb; border-radius: 16rpx; }
+.comparison-scroll { width: 100%; }
+.comparison-table { width: 100%; }
+.compare-row { flex-direction: row; border-bottom: 1rpx solid #e8ebe2; }
+.compare-label { width: 220rpx; flex-shrink: 0; padding: 18rpx 8rpx; color: #6d7e74; font-size: 24rpx; line-height: 36rpx; }
+.compare-cell { flex: 1; width: 0; padding: 18rpx 8rpx; color: #287565; font-size: 24rpx; line-height: 36rpx; }
+.card-summary { margin-top: 8rpx; }
+.asset-metric { margin-top: 12rpx; }
+.calculation-context { margin-top: 20rpx; }
+.coverage-panel { background-color: #fffefb; padding: 20rpx; border-radius: 16rpx; margin-top: 20rpx; }
+.tabs { flex-direction: row; margin-top: 30rpx; background-color: #eaece3; padding: 8rpx; border-radius: 16rpx; }
+.tab { flex: 1; text-align: center; color: #6d7e74; font-size: 24rpx; padding: 18rpx 4rpx; border-radius: 12rpx; }
+.tab-active { color: #fffefb; background-color: #287565; }
+.section { margin-top: 26rpx; }
+.asset-meta { flex-direction: row; flex-wrap: wrap; margin-top: 10rpx; margin-bottom: 18rpx; }
+.delete-role { text-align: center; margin-top: 36rpx; }
+.export-message { margin-top: 16rpx; }
+.origin-tag { flex-direction: row; margin-top: 16rpx; }
+.summary-grid { flex-direction: row; margin-top: 20rpx; }
+.summary-card { flex: 1; background-color: #fffefb; padding: 20rpx 12rpx; border-radius: 18rpx; margin-right: 8rpx; }
+.summary-label { color: #6d7e74; font-size: 22rpx; }
+.summary-money { font-size: 28rpx; font-weight: bold; margin-top: 14rpx; }
+.summary-caption { color: #78847d; font-size: 20rpx; line-height: 32rpx; margin-top: 8rpx; }
+.subtype-filters { flex-direction: row; flex-wrap: wrap; margin-top: 16rpx; }
+.filter-chip { font-size: 22rpx; color: #6d7e74; background-color: #fffefb; padding: 12rpx 20rpx; border-radius: 24rpx; margin-right: 10rpx; margin-top: 8rpx; }
+.filter-chip-active { color: #fffefb; background-color: #287565; }
+.asset-title { flex: 1; margin-right: 18rpx; line-height: 42rpx; }
+.asset-money { font-size: 26rpx; }
+.asset-tag { margin-right: 10rpx; margin-top: 8rpx; }
+.contents { background-color: #f5f4ee; border-radius: 12rpx; padding: 16rpx; margin-bottom: 14rpx; }
+.role-menu { color: #6d7e74; font-size: 28rpx; padding: 24rpx 12rpx; }
+.role-header { align-items: flex-start; }
+.role-id { margin-left: 18rpx; }
+.role-hero { margin-top: 20rpx; padding: 26rpx; }
+.summary-grid { margin-top: 16rpx; }
+.summary-card { border-width: 1rpx; border-color: #e8ebe2; margin-right: 8rpx; }
+.summary-money { font-size: 26rpx; }
+.coverage-label { font-size: 24rpx; color: #203a33; }
+.coverage-summary { flex: 1; margin-left: 20rpx; }
+.coverage-arrow { color: #6d7e74; font-size: 30rpx; }
+.coverage-detail { margin-top: 18rpx; }
+.asset-caption { margin-left: 20rpx; margin-right: 12rpx; }
+.asset-type { color: #6d7e74; font-size: 22rpx; margin-right: 12rpx; }
+.asset-title { margin-right: 0; font-size: 28rpx; }
+.asset-money { font-size: 25rpx; }
+.asset-meta { margin-bottom: 0; margin-top: 6rpx; align-items: center; }
+.asset-tag { font-size: 20rpx; }
+.card-summary { margin-top: 18rpx; }
+.asset-actions { flex-direction: row; align-items: center; border-top-width: 1rpx; border-top-color: #e8ebe2; margin-top: 20rpx; padding-top: 12rpx; }
+.compare-action { color: #287565; font-size: 24rpx; border-width: 1rpx; border-color: #cadccd; border-radius: 14rpx; padding: 16rpx 24rpx; }
+.detail-action { flex: 1; text-align: right; padding-right: 24rpx; }
+.asset-more { color: #6d7e74; font-size: 26rpx; padding: 20rpx 8rpx; }
+.list-caption { margin-bottom: 4rpx; }
+</style>

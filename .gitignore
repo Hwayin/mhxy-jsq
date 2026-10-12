@@ -1,0 +1,10 @@
+node_modules/
+unpackage/
+.DS_Store
+*.keystore
+*.jks
+*.p12
+*.mobileprovision
+.local/
+*.apk
+*.aab

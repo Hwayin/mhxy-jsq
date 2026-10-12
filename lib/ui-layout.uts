@@ -1,0 +1,4 @@
+// 原生蒸汽模式不支持 CSS calc + env，安全区改用窗口 API 的实际像素。
+export function safeBottomPadding(base: number = 16): string {
+  return String(base + (uni.getWindowInfo().safeAreaInsets?.bottom || 0)) + 'px'
+}

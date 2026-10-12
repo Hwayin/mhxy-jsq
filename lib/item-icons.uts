@@ -1,0 +1,8 @@
+import { EQUIPMENT_ITEMS } from './item-catalog.uts'
+import { ITEM_ICON_IDS } from './item-icon-ids.uts'
+
+// 仅允许已下载的物品 ID；旧记录可按准确物品名匹配，不猜测具体装备。
+export function itemIconSource(id: string, name: string = ''): string {
+  const itemId = id || EQUIPMENT_ITEMS.find(item => item.name === name)?.id || ''
+  return ITEM_ICON_IDS.includes(itemId) ? '/static/items/' + itemId + '.png' : ''
+}

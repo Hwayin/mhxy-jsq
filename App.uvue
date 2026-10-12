@@ -1,0 +1,71 @@
+<script setup>
+onLaunch(() => { console.log('梦幻多开账本已启动') })
+
+// #ifdef APP-ANDROID
+let exitDialogOpen = false
+// 最后一页的系统返回由应用统一处理，详情页仍正常返回上一页。
+onLastPageBackPress(() => {
+  if (exitDialogOpen) return
+  exitDialogOpen = true
+  uni.showModal({
+    title: '退出应用',
+    content: '确定退出梦幻多开账本吗？已保存的账本会保留在本机。',
+    cancelText: '继续使用',
+    confirmText: '退出',
+    confirmColor: '#287565',
+    success: res => { if (res.confirm) uni.exit() },
+    complete: () => { exitDialogOpen = false }
+  })
+})
+onExit(() => { exitDialogOpen = false })
+// #endif
+</script>
+
+<style>
+/* App 页面仅使用简单类选择器，文字显式设色；适配原生渲染。 */
+.page { padding: 32rpx; background-color: #f5f4ee; }
+.row { flex-direction: row; align-items: center; }
+.between { flex-direction: row; align-items: center; justify-content: space-between; }
+.grow { flex: 1; }
+.title { font-size: 42rpx; font-weight: bold; color: #203a33; }
+.subtitle { font-size: 26rpx; color: #6d7e74; margin-top: 10rpx; line-height: 40rpx; }
+.section-title { font-size: 30rpx; color: #203a33; font-weight: bold; }
+.card { background-color: #fffefb; border-radius: 28rpx; padding: 28rpx; margin-top: 20rpx; border-width: 1rpx; border-color: #e8ebe2; }
+.hero { position: relative; overflow: hidden; background-color: #287565; border-radius: 28rpx; padding: 32rpx; margin-top: 24rpx; }
+.hero-cloud { position: absolute; width: 240rpx; height: 160rpx; right: 0; top: 8rpx; }
+.hero-label { color: #d8e8df; font-size: 26rpx; }
+.hero-money { color: #fffefb; font-size: 62rpx; font-weight: bold; margin-top: 16rpx; }
+.hero-note { color: #d8e8df; font-size: 24rpx; margin-top: 18rpx; line-height: 38rpx; }
+.body { color: #203a33; font-size: 28rpx; line-height: 42rpx; }
+.muted { color: #6d7e74; font-size: 24rpx; line-height: 38rpx; }
+.money { color: #203a33; font-size: 30rpx; font-weight: bold; }
+.tag { color: #287565; background-color: #e7f0ea; padding: 6rpx 14rpx; border-radius: 10rpx; font-size: 22rpx; }
+.link { color: #287565; font-size: 26rpx; padding: 20rpx 0; }
+.danger { color: #b85252; font-size: 26rpx; padding: 20rpx 0; }
+.primary { color: #fffefb; background-color: #287565; border-radius: 20rpx; font-size: 28rpx; margin-top: 24rpx; min-height: 88rpx; }
+.secondary { color: #287565; background-color: #e7f0ea; border-radius: 20rpx; font-size: 28rpx; margin-top: 20rpx; min-height: 88rpx; }
+.outline { color: #287565; background-color: #fffefb; border-radius: 16rpx; border-width: 1rpx; border-color: #c7d9cb; font-size: 24rpx; padding: 16rpx 24rpx; }
+.page-with-dock { padding-bottom: 260rpx; }
+.action-dock { position: fixed; left: 0; right: 0; bottom: 0; padding: 16rpx 32rpx 28rpx; background-color: #f5f4ee; border-top-width: 1rpx; border-top-color: #e2e7dd; }
+.dock-button { margin-top: 0; width: 100%; }
+.seal { width: 88rpx; height: 88rpx; border-radius: 24rpx; background-color: #e7f0ea; align-items: center; justify-content: center; margin-right: 22rpx; }
+.seal-text { font-size: 40rpx; color: #287565; font-weight: bold; }
+.eyebrow { font-size: 22rpx; color: #887848; letter-spacing: 2rpx; margin-bottom: 12rpx; }
+.chip-row { flex-direction: row; flex-wrap: wrap; margin-top: 16rpx; }
+.chip { font-size: 24rpx; color: #6d7e74; background-color: #fffefb; padding: 18rpx 24rpx; border-radius: 24rpx; margin-right: 12rpx; margin-top: 8rpx; }
+.chip-active { color: #fffefb; background-color: #287565; }
+.label { color: #203a33; font-size: 26rpx; margin-bottom: 12rpx; }
+.field { background-color: #f0f1e9; border-radius: 14rpx; padding: 20rpx; font-size: 28rpx; color: #203a33; height: 84rpx; }
+.textarea { background-color: #f0f1e9; border-radius: 14rpx; padding: 20rpx; font-size: 26rpx; color: #203a33; width: 100%; height: 180rpx; }
+.field-group { margin-top: 24rpx; }
+.notice { background-color: #fff4df; border-radius: 16rpx; padding: 22rpx; margin-top: 24rpx; }
+.notice-text { color: #976d2d; font-size: 24rpx; line-height: 38rpx; }
+.error { color: #bd4252; font-size: 26rpx; line-height: 40rpx; margin-top: 20rpx; }
+.empty { align-items: center; padding: 48rpx 20rpx; }
+.divider { height: 1rpx; background-color: #e8ebe2; margin-top: 22rpx; margin-bottom: 22rpx; }
+.spacer { height: 40rpx; }
+/* #ifdef WEB */
+uni-app { font-family: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+.page { min-height: calc(100vh - 44px); box-sizing: border-box; }
+/* #endif */
+</style>

@@ -1,0 +1,392 @@
+// 蒸汽模式下使用 TS；保留 .uts 后缀以兼容 HBuilderX 5.26。
+// 纯业务模块：金额统一按人民币分存储，不依赖平台或 UI。
+export type Account = { id: string; name: string; group: string; note: string }
+export type CalculationRules = { fixedEnabled?: boolean; fixedDamageRate?: number; fixedAgilityRate?: number; magicDamageRate?: number; powerRate?: number; enduranceRate?: number }
+export type Role = { id: string; accountId: string; name: string; server: string; school: string; level: number; gameId: string; purchaseMode: string; purchaseCents: number; note: string; race?: string; calculation?: CalculationRules }
+export type NumericAttribute = { kind: string; value: number; unit?: string; perRank?: number }
+export type AssetAttributes = { slot?: string; level?: number; gem?: string; gemRank?: number; effect?: string; petType?: string; skills?: string; growth?: string; setEffect?: string; specialSkill?: string; specialEffects?: string[]; starRank?: number; bellSet?: string; bellLevel?: number; dustRank?: number; jadeKind?: string; jadeEffects?: string[]; ambushSkills?: string[]; itemId?: string; itemName?: string; greenAttributes?: NumericAttribute[]; baseAttributes?: NumericAttribute[]; valuesStage?: string; extraGem?: string; extraGemRank?: number }
+export type Asset = { id: string; roleId: string; category: string; name: string; costCents: number; included: boolean; date: string; detail: string; note: string; subtype?: string; purchaseKind?: string; contents?: string; quantity?: number; attributes?: AssetAttributes; nameGenerated?: boolean; originalName?: string }
+export type Ledger = { version: number; accounts: Account[]; roles: Role[]; assets: Asset[] }
+export type Category = { key: string; label: string; color: string }
+export type RoleTotal = Role & { total: number }
+export type CostBreakdown = Category & { count: number; cents: number; referenceCents: number; includedCents: number }
+export type RoleInfo = { role: Role; assets: Asset[]; extra: number; total: number; breakdown: CostBreakdown[]; subtypes: CostBreakdown[] }
+export type Summary = { accountCount: number; roleCount: number; assetCount: number; includedCount: number; purchase: number; categories: (Category & { cents: number })[]; total: number; average: number; ranking: RoleTotal[] }
+export const VERSION = 2
+export const PURCHASE_MODES = [
+  { key: 'self', label: '自建起号', hint: '基础投入可填 0，技能、修炼、坐骑等养成费用逐笔记录。' },
+  { key: 'bare', label: '裸号购入', hint: '后续装备、召唤兽及其他费用计入新增投入。' },
+  { key: 'bundle', label: '整号购入', hint: '随号资产可标记为购号价已包含，后续购入的资产独立计价。' }
+]
+export const CATEGORIES: Category[] = [
+  { key: 'equipment', label: '装备管理', color: '#5266df' },
+  { key: 'pet', label: '召唤兽', color: '#36ad98' },
+  { key: 'other', label: '其他投入', color: '#e8ad56' }
+]
+export const SUBTYPES = [
+  { key: 'gear', category: 'equipment', label: '装备' },
+  { key: 'ornament', category: 'equipment', label: '灵饰' },
+  { key: 'jade', category: 'equipment', label: '上古玉魄' },
+  { key: 'pet', category: 'pet', label: '召唤兽' },
+  { key: 'petGear', category: 'pet', label: '召唤兽装备' },
+  { key: 'training', category: 'other', label: '角色养成' },
+  { key: 'mount', category: 'other', label: '坐骑' },
+  { key: 'running', category: 'other', label: '日常开销' },
+  { key: 'misc', category: 'other', label: '其他' }
+]
+export const EQUIPMENT_POSITIONS = [
+  { key: 'gear', label: '装备', positions: ['武器', '头部', '项链', '衣服', '腰带', '鞋'] },
+  { key: 'ornament', label: '灵饰', positions: ['戒指', '耳饰', '手镯', '佩饰'] },
+  { key: 'jade', label: '上古玉魄', positions: ['阳玉', '阴玉'] }
+]
+export const GREEN_ATTRIBUTE_OPTIONS = {
+  gear: ['体质', '魔力', '力量', '耐力', '敏捷'],
+  ornament: ['固定伤害', '伤害', '速度', '法术伤害', '狂暴等级', '物理暴击等级', '法术暴击等级', '封印命中等级', '法术伤害结果', '穿刺等级', '治疗能力', '气血', '防御', '法术防御', '抗物理暴击等级', '抗法术暴击等级', '抗封印等级', '格挡值', '气血回复效果'],
+  jade: ['气血', '防御', '法术防御', '抗物理暴击等级', '抗法术暴击等级', '抵抗封印等级', '格挡值', '气血回复效果', '抗固伤暴击等级', '伤害', '速度', '法术伤害', '狂暴等级', '物理暴击等级', '法术暴击等级', '封印命中等级', '法术伤害结果', '穿刺等级', '治疗能力', '固伤暴击等级']
+}
+export function numericAttributeText(row: NumericAttribute): string { return row.kind + (row.value >= 0 ? '+' : '−') + Math.abs(row.value) + (row.unit || '') }
+export function equipmentName(asset: Asset): string {
+  const a = asset.attributes
+  const type = assetSubtype(asset)
+  if (!a) return '待配置装备'
+  const position = equipmentPosition(asset)
+  const base = a.itemName || (type === 'jade' ? position ? '上古玉魄·' + (position === '阳玉' ? '阳' : '阴') : '上古玉魄' : position || subtypeLabel(asset))
+  const parts = [(a.level != null && type !== 'jade' ? a.level + '级 ' : '') + base]
+  if (a.greenAttributes?.length) parts.push(a.greenAttributes.map(numericAttributeText).join(' / '))
+  if (a.baseAttributes?.length) parts.push(a.baseAttributes.map(r => '初' + r.kind + r.value + (r.unit || '')).join(' / '))
+  const rank = type === 'jade' ? a.dustRank : type === 'ornament' ? a.starRank : a.gemRank
+  const gem = type === 'jade' ? '五色灵尘' : type === 'ornament' ? '星辉石' : a.gem || '宝石'
+  if (rank != null) parts.push(gem + rank + '锻')
+  if (type === 'gear' && a.extraGem) parts.push(a.extraGem + (a.extraGemRank != null ? a.extraGemRank + '锻' : '（待填锻数）'))
+  if (type !== 'gear' && a.valuesStage === 'initial') parts.push('附加初始值')
+  if (type === 'gear' && a.setEffect) parts.push(a.setEffect)
+  if (type === 'gear' && a.specialSkill) parts.push(a.specialSkill)
+  if (type === 'ornament' && a.bellSet) parts.push(a.bellSet)
+  const name = parts.join(' · ')
+  return name.length <= 200 ? name : name.slice(0, 199) + '…'
+}
+export function equipmentPosition(asset: Asset): string {
+  const a = asset.attributes
+  if (!a) return ''
+  if (assetSubtype(asset) === 'jade') return a.jadeKind || ''
+  const slot = a.slot || ''
+  if (['头盔', '发钗'].includes(slot)) return '头部'
+  if (['铠甲', '男衣', '女衣'].includes(slot)) return '衣服'
+  return slot
+}
+export function isEquipmentSet(asset: Asset): boolean {
+  return asset.category === 'equipment' && (asset.purchaseKind === 'set' || ['装备套装', '前排灵饰', '后排灵饰'].includes(asset.attributes?.slot || ''))
+}
+export function equipmentCoverage(assets: Asset[]) {
+  return EQUIPMENT_POSITIONS.map(type => {
+    const recorded = new Set(assets.filter(a => a.category === 'equipment' && assetSubtype(a) === type.key && !isEquipmentSet(a)).map(equipmentPosition))
+    return { key: type.key, label: type.label, total: type.positions.length, count: type.positions.filter(p => recorded.has(p)).length, missing: type.positions.filter(p => !recorded.has(p)) }
+  })
+}
+export function validateEquipmentItem(asset: Asset) {
+  if (asset.category !== 'equipment') return
+  ensure(!isEquipmentSet(asset), '装备、灵饰和上古玉魄必须逐件录入，不能使用组合记录')
+  const type = EQUIPMENT_POSITIONS.find(t => t.key === assetSubtype(asset))
+  ensure(type, '请选择装备类型')
+  ensure(type.positions.includes(equipmentPosition(asset)), type.key === 'jade' ? '请选择阳玉或阴玉，每条记录仅对应一件玉魄' : '请选择具体部位，每条记录仅对应一件装备或灵饰')
+  if (type.key === 'gear' && asset.attributes?.greenAttributes) {
+    const rows = asset.attributes.greenAttributes
+    ensure(rows.length <= 5 && new Set(rows.map(r => r.kind)).size === rows.length, '装备绿字属性最多五项，同一属性不能重复')
+    ensure(rows.every(r => Number.isInteger(r.value) && !r.unit), '装备绿字属性应为整数点数')
+  }
+}
+export function purchaseLabel(mode: string): string { return PURCHASE_MODES.find(m => m.key === mode)?.label || '购入' }
+export function purchaseHint(mode: string): string { return PURCHASE_MODES.find(m => m.key === mode)?.hint || '' }
+// 旧版本 attachment 的 ID 保持有效，在三类管理中显示为上古玉魄。
+export function assetSubtype(asset: Asset): string { return asset.category === 'equipment' && asset.subtype === 'attachment' ? 'jade' : asset.subtype || '' }
+export function subtypeLabel(asset: Asset): string { return SUBTYPES.find(s => s.key === assetSubtype(asset) && s.category === asset.category)?.label || '未细分' }
+export function suggestSubtype(category: string, name: string): string {
+  if (category === 'equipment') {
+    if (/灵饰/.test(name)) return 'ornament'
+    if (/阳玉|阴玉|玉魄/.test(name)) return 'jade'
+    if (/武器|项链|女衣|男衣|头盔|腰带|鞋|铠甲|套/.test(name)) return 'gear'
+  }
+  if (category === 'other') {
+    if (/坐骑/.test(name)) return 'mount'
+    if (/修炼|点修|技能|潜能|强身/.test(name)) return 'training'
+    if (/点卡|月卡|电费|网费/.test(name)) return 'running'
+  }
+  return ''
+}
+export function attributeText(asset: Asset): string {
+  const a = asset.attributes
+  if (!a) return ''
+  const parts: string[] = []
+  if (a.slot) parts.push(a.slot)
+  if (a.level != null) parts.push(a.level + '级')
+  if (a.itemName) parts.push(a.itemName)
+  if (a.greenAttributes?.length) parts.push(a.greenAttributes.map(numericAttributeText).join(' / '))
+  const type = assetSubtype(asset)
+  if (type === 'ornament') {
+    const rank = a.starRank != null ? a.starRank : a.gemRank
+    if (rank != null) parts.push('星辉石 ' + rank + '锻')
+    if (a.bellSet) parts.push('钟灵石 ' + a.bellSet + (a.bellLevel != null ? ' ' + a.bellLevel + '级' : ''))
+    else if (a.bellLevel != null) parts.push('钟灵石 ' + a.bellLevel + '级')
+  } else if (type === 'jade') {
+    if (a.jadeKind) parts.push(a.jadeKind)
+    const rank = a.dustRank != null ? a.dustRank : a.gemRank
+    if (rank != null) parts.push('五色灵尘 ' + rank + '锻')
+    if (a.jadeEffects?.length) parts.push(a.jadeEffects.join(' / '))
+    if (a.ambushSkills?.length) parts.push(a.ambushSkills.join(' / '))
+  } else {
+    if (a.gem) parts.push(a.gem + (a.gemRank != null ? ' ' + a.gemRank + '锻' : ''))
+    else if (a.gemRank != null) parts.push(a.gemRank + '锻')
+    if (a.extraGem) parts.push(a.extraGem + (a.extraGemRank != null ? ' ' + a.extraGemRank + '锻' : ''))
+    if (a.setEffect) parts.push('套装 ' + a.setEffect)
+    if (a.specialSkill) parts.push('特技 ' + a.specialSkill)
+    if (a.specialEffects?.length) parts.push('特效 ' + a.specialEffects.join(' / '))
+  }
+  if (a.petType) parts.push(a.petType)
+  if (a.growth) parts.push('成长 ' + a.growth)
+  if (a.skills) parts.push(a.skills)
+  if (a.effect) parts.push(a.effect)
+  return parts.join(' · ')
+}
+export const SCHOOLS = ['大唐官府', '方寸山', '化生寺', '女儿村', '天宫', '龙宫', '五庄观', '普陀山', '阴曹地府', '魔王寨', '狮驼岭', '盘丝洞', '神木林', '凌波城', '无底洞', '花果山', '天机城', '女魃墓', '九黎城', '其他']
+export function emptyLedger(): Ledger { return { version: VERSION, accounts: [], roles: [], assets: [] } }
+export function clone<T>(value: T): T { return JSON.parse(JSON.stringify(value)) as T }
+export function makeId() { return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10) }
+export function errorMessage(error: unknown): string { return error instanceof Error ? error.message : String(error) }
+export function toCents(input: string | number): number {
+  const value = String(input).trim()
+  if (!/^\d{1,9}(\.\d{1,2})?$/.test(value)) throw new Error('请输入非负金额，最多两位小数（单位：元）')
+  const parts = value.split('.')
+  return Number(parts[0]) * 100 + Number((parts[1] || '').padEnd(2, '0'))
+}
+export function amountInput(cents: number): string { return (cents / 100).toFixed(2) }
+export function money(cents: number): string {
+  const parts = amountInput(cents).split('.')
+  return '¥' + parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.' + parts[1]
+}
+function ensure(condition: unknown, message: string): asserts condition { if (!condition) throw new Error(message) }
+function text(value: unknown, label: string, required = false, max = 200) {
+  ensure(typeof value === 'string' && value.length <= max && (!required || value.trim().length > 0), label + '格式不正确')
+}
+function cents(value: number) { ensure(Number.isSafeInteger(value) && value >= 0 && value <= 99999999999, '金额超出有效范围') }
+export function validateLedger(data: Ledger): Ledger {
+  ensure(data && [1, VERSION].includes(data.version), '备份版本不支持，请使用本应用的 v1 / v2 备份')
+  for (const key of ['accounts', 'roles', 'assets']) ensure(Array.isArray(data[key]) && data[key].length <= 10000, '备份数据结构或记录数量不正确')
+  const ids = new Set()
+  for (const row of [...data.accounts, ...data.roles, ...data.assets]) {
+    ensure(row && typeof row === 'object', '记录格式不正确')
+    text(row.id, '记录 ID', true, 100)
+    ensure(!ids.has(row.id), '备份中存在重复 ID'); ids.add(row.id)
+  }
+  for (const account of data.accounts) {
+    text(account.name, '账号名称', true); text(account.group, '队伍'); text(account.note, '账号备注', false, 2000)
+  }
+  for (const role of data.roles) {
+    ensure(data.accounts.some(a => a.id === role.accountId), '角色所属账号不存在')
+    text(role.name, '角色名称', true); text(role.server, '服务器', true)
+    text(role.school, '门派', true); text(role.gameId, '游戏角色 ID'); text(role.note, '角色备注', false, 2000)
+    ensure(Number.isInteger(role.level) && role.level >= 0 && role.level <= 200, '等级应为 0～200 的整数')
+    ensure(PURCHASE_MODES.some(m => m.key === role.purchaseMode), '起号方式不正确'); cents(role.purchaseCents)
+    if (role.race != null) ensure(['human', 'demon', 'immortal'].includes(role.race), '种族不正确')
+    if (role.calculation != null) {
+      ensure(typeof role.calculation === 'object' && !Array.isArray(role.calculation), '换算设置不正确')
+      if (role.calculation.fixedEnabled != null) ensure(typeof role.calculation.fixedEnabled === 'boolean', '固伤启用设置不正确')
+      for (const key of ['fixedDamageRate', 'fixedAgilityRate', 'magicDamageRate', 'powerRate', 'enduranceRate']) if (role.calculation[key] != null) ensure(typeof role.calculation[key] === 'number' && Number.isFinite(role.calculation[key]) && role.calculation[key] >= 0 && role.calculation[key] <= 10, '换算系数应为 0～10')
+    }
+  }
+  for (const asset of data.assets) {
+    const role = data.roles.find(r => r.id === asset.roleId)
+    ensure(role, '资产所属角色不存在')
+    ensure(CATEGORIES.some(c => c.key === asset.category), '资产分类不正确')
+    text(asset.name, '资产名称', true); text(asset.detail, '资产属性', false, 2000); text(asset.note, '资产备注', false, 2000)
+    if (asset.nameGenerated != null) ensure(typeof asset.nameGenerated === 'boolean', '名称生成标记不正确')
+    if (asset.originalName != null) text(asset.originalName, '原记录名称', false, 200)
+    cents(asset.costCents)
+    ensure(typeof asset.included === 'boolean', '资产计价标记不正确')
+    ensure(!asset.included || (role.purchaseMode === 'bundle' && asset.category !== 'other'), '仅整号购入的装备和召唤兽可标记为购号价已包含')
+    // UTS 类型的可选属性缺省值为 null，普通 JS 为 undefined，两者均表示未填写。
+    if (asset.subtype != null) ensure(SUBTYPES.some(s => s.key === assetSubtype(asset) && s.category === asset.category), '细分类型与分类不匹配')
+    if (asset.purchaseKind != null) ensure(['single', 'set'].includes(asset.purchaseKind), '明细购入方式不正确')
+    if (asset.contents != null) { text(asset.contents, '包含内容', false, 2000); ensure(asset.purchaseKind === 'set', '包含内容仅用于组合购入') }
+    if (asset.quantity != null) { const quantity = asset.quantity as number; ensure(asset.purchaseKind === 'set' && Number.isInteger(quantity) && quantity >= 1 && quantity <= 999, '组合数量应为 1～999 的整数') }
+    if (asset.attributes != null) {
+      const a = asset.attributes
+      ensure(a && typeof a === 'object' && !Array.isArray(a), '属性格式不正确')
+      for (const key of ['slot', 'gem', 'effect', 'petType', 'skills', 'growth', 'setEffect', 'specialSkill', 'bellSet', 'jadeKind', 'itemName', 'itemId']) if (a[key] != null) text(a[key], '资产属性', false, 500)
+      if (a.valuesStage != null) ensure(['initial', 'finished'].includes(a.valuesStage), '属性录入口径不正确')
+      if (a.extraGem != null) text(a.extraGem, '第二宝石', false, 100)
+      if (a.extraGemRank != null) ensure(Number.isInteger(a.extraGemRank) && a.extraGemRank >= 0 && a.extraGemRank <= 30 && !!a.extraGem, '第二宝石锻数不正确')
+      ensure((a.gemRank || 0) + (a.extraGemRank || 0) <= 30, '合计宝石锻数不能超过30')
+      for (const key of ['greenAttributes', 'baseAttributes']) if (a[key] != null) {
+        ensure(Array.isArray(a[key]) && a[key].length <= 12, '数值属性最多十二项')
+        for (const row of a[key] as NumericAttribute[]) {
+          ensure(row && typeof row === 'object' && !Array.isArray(row), '数值属性格式不正确')
+          text(row.kind, '属性名称', true, 100)
+          ensure(typeof row.value === 'number' && Number.isFinite(row.value) && Math.abs(row.value) <= 999999 && Math.abs(row.value * 100 - Math.round(row.value * 100)) < 0.0000001, '属性数值应为 −999999～999999，最多两位小数')
+          if (row.unit != null) ensure(['', '%'].includes(row.unit), '属性单位不正确')
+          if (row.perRank != null) ensure(typeof row.perRank === 'number' && Number.isFinite(row.perRank) && row.perRank >= 0 && row.perRank <= 999999 && Math.abs(row.perRank * 100 - Math.round(row.perRank * 100)) < 0.0000001, '每级增量应为非负数，最多两位小数')
+        }
+        if (key === 'baseAttributes') {
+          const bases = a[key] as NumericAttribute[]
+          ensure(bases.every(r => r.value >= 0), '基础属性应为非负数')
+          ensure(new Set(bases.map(r => r.kind + ':' + (r.unit || ''))).size === bases.length, '基础属性不能重复')
+        }
+      }
+      for (const key of ['specialEffects', 'jadeEffects', 'ambushSkills']) if (a[key] != null) {
+        const values = a[key] as string[]
+        ensure(Array.isArray(values) && values.length <= 30, '多选属性应为最多 30 项的列表')
+        for (const value of values) text(value, '多选属性', true, 100)
+        ensure(new Set(values).size === values.length, '多选属性存在重复项')
+      }
+      for (const { key, label, max } of [{ key: 'starRank', label: '星辉石锻数', max: 30 }, { key: 'bellLevel', label: '钟灵石等级', max: 8 }, { key: 'dustRank', label: '五色灵尘锻数', max: 15 }]) if (a[key] != null) {
+        const rank = a[key] as number
+        ensure(Number.isInteger(rank) && rank >= 0 && rank <= max, label + '应为 0～' + max + ' 的整数')
+      }
+      if (a.level != null) { const level = a.level as number; ensure(Number.isInteger(level) && level >= 0 && level <= 200, '资产等级应为 0～200 的整数') }
+      if (a.gemRank != null) { const rank = a.gemRank as number; ensure(Number.isInteger(rank) && rank >= 0 && rank <= 30, '宝石锻数应为 0～30 的整数') }
+      if (a.growth != null && a.growth !== '') ensure(/^\d{1,2}(\.\d{1,3})?$/.test(a.growth), '成长应为非负数字，最多三位小数')
+    }
+    text(asset.date, '购买日期')
+    if (asset.date !== '') {
+      ensure(/^\d{4}-\d{2}-\d{2}$/.test(asset.date), '购买日期应为 YYYY-MM-DD')
+      const parsed = new Date(asset.date + 'T00:00:00Z')
+      ensure(!Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === asset.date, '购买日期不存在')
+    }
+  }
+  const total = data.roles.reduce((sum, role) => sum + role.purchaseCents, 0) + data.assets.reduce((sum, asset) => sum + (asset.included ? 0 : asset.costCents), 0)
+  ensure(Number.isSafeInteger(total), '汇总金额超出安全范围')
+  // v1 数据按读取结果升级；不改写调用方对象或浏览器中的原记录。
+  return data.version === VERSION ? data : { ...data, version: VERSION }
+}
+export function putRecord(data: Ledger, kind: string, record: Account | Role | Asset): Ledger {
+  ensure(['accounts', 'roles', 'assets'].includes(kind), '未知记录类型')
+  // 旧备份可读取，但新的装备写入必须是具有具体部位的单件记录。
+  if (kind === 'assets') validateEquipmentItem(record as Asset)
+  const next = clone(data)
+  const records = next[kind as keyof Ledger] as (Account | Role | Asset)[]
+  const index = records.findIndex(row => row.id === record.id)
+  if (index >= 0) records[index] = clone(record)
+  else records.push(clone(record))
+  return validateLedger(next)
+}
+export function removeRecord(data: Ledger, kind: string, id: string): Ledger {
+  ensure(['accounts', 'roles', 'assets'].includes(kind), '未知记录类型')
+  const next = clone(data)
+  if (kind === 'accounts') next.roles = next.roles.filter(r => r.accountId !== id)
+  if (kind === 'accounts') next.accounts = next.accounts.filter(row => row.id !== id)
+  if (kind === 'roles') next.roles = next.roles.filter(row => row.id !== id)
+  if (kind === 'assets') next.assets = next.assets.filter(row => row.id !== id)
+  const remainingRoles = new Set(next.roles.map(r => r.id))
+  next.assets = next.assets.filter(a => remainingRoles.has(a.roleId))
+  return validateLedger(next)
+}
+export function summarize(data: Ledger, group = ''): Summary {
+  const accounts = data.accounts.filter(a => !group || a.group === group)
+  const accountIds = new Set(accounts.map(a => a.id))
+  const roles = data.roles.filter(r => accountIds.has(r.accountId))
+  const roleIds = new Set(roles.map(r => r.id))
+  const assets = data.assets.filter(a => roleIds.has(a.roleId))
+  const purchase = roles.reduce((sum, r) => sum + r.purchaseCents, 0)
+  const categories = CATEGORIES.map(c => ({ ...c, cents: assets.filter(a => a.category === c.key && !a.included).reduce((sum, a) => sum + a.costCents, 0) }))
+  const total = purchase + categories.reduce((sum, c) => sum + c.cents, 0)
+  const ranking = roles.map(r => ({ ...r, total: r.purchaseCents + assets.filter(a => a.roleId === r.id && !a.included).reduce((sum, a) => sum + a.costCents, 0) })).sort((a, b) => b.total - a.total)
+  return { accountCount: accounts.length, roleCount: roles.length, assetCount: assets.length, includedCount: assets.filter(a => a.included).length, purchase, categories, total, average: roles.length ? Math.round(total / roles.length) : 0, ranking }
+}
+export function roleSummary(data: Ledger, id: string): RoleInfo | null {
+  const role = data.roles.find(r => r.id === id)
+  if (!role) return null
+  const assets = data.assets.filter(a => a.roleId === id)
+  const extra = assets.filter(a => !a.included).reduce((sum, a) => sum + a.costCents, 0)
+  const aggregate = (key: string, label: string, color: string, rows: Asset[]): CostBreakdown => ({
+    key, label, color, count: rows.length,
+    cents: rows.filter(a => !a.included).reduce((sum, a) => sum + a.costCents, 0),
+    referenceCents: rows.reduce((sum, a) => sum + a.costCents, 0),
+    includedCents: rows.filter(a => a.included).reduce((sum, a) => sum + a.costCents, 0)
+  })
+  const breakdown = CATEGORIES.map(c => aggregate(c.key, c.label, c.color, assets.filter(a => a.category === c.key)))
+  const subtypes = SUBTYPES.map(s => aggregate(s.key, s.label, '', assets.filter(a => assetSubtype(a) === s.key && a.category === s.category))).filter(s => s.count > 0)
+  const unspecified = assets.filter(a => !a.subtype)
+  if (unspecified.length) subtypes.push(aggregate('unspecified', '未细分', '', unspecified))
+  return { role, assets, extra, total: role.purchaseCents + extra, breakdown, subtypes }
+}
+export function exportBackup(data: Ledger): string { return JSON.stringify({ app: 'mhxy-cost-ledger', exportedAt: new Date().toISOString(), data: validateLedger(data) }) }
+export function roleLedger(data: Ledger, roleId: string): Ledger {
+  validateLedger(data)
+  const role = data.roles.find(r => r.id === roleId)
+  ensure(role, '角色不存在，无法导出')
+  return clone({ version: VERSION, accounts: data.accounts.filter(a => a.id === role.accountId), roles: [role], assets: data.assets.filter(a => a.roleId === roleId) })
+}
+export function exportRoleBackup(data: Ledger, roleId: string): string {
+  return JSON.stringify({ app: 'mhxy-cost-ledger', exportedAt: new Date().toISOString(), scope: 'role', roleId, data: roleLedger(data, roleId) })
+}
+export function parseRoleBackup(raw: string): { roleId: string; data: Ledger } {
+  const data = importBackup(raw)
+  const meta = JSON.parse(raw) as { scope: string; roleId: string }
+  ensure(meta.scope === 'role' && typeof meta.roleId === 'string', '这不是角色备份')
+  ensure(data.roles.length === 1 && data.roles[0].id === meta.roleId && data.accounts.length === 1, '角色备份范围或 ID 不一致')
+  return { roleId: meta.roleId, data }
+}
+export function mergeRoleBackup(current: Ledger, raw: string): Ledger {
+  validateLedger(current)
+  const backup = parseRoleBackup(raw)
+  const next = clone(current)
+  const incomingRole = backup.data.roles[0]
+  const incomingAccount = backup.data.accounts[0]
+  if (!next.accounts.some(a => a.id === incomingAccount.id)) next.accounts.push(incomingAccount)
+  next.roles = next.roles.filter(r => r.id !== backup.roleId)
+  next.roles.push(incomingRole)
+  next.assets = next.assets.filter(a => a.roleId !== backup.roleId)
+  next.assets.push(...backup.data.assets)
+  return validateLedger(next)
+}
+export function importBackup(raw: string): Ledger {
+  ensure(typeof raw === 'string' && raw.length <= 10000000, '备份文本过大或格式不正确')
+  let backup: { app: string; data: Ledger } | null
+  try { backup = JSON.parse(raw) } catch { throw new Error('备份不是有效的 JSON 文本') }
+  ensure(backup && backup.app === 'mhxy-cost-ledger', '这不是梦幻多开账本备份')
+  const source = validateLedger(backup.data)
+  // 白名单恢复，避免未知字段（如其他来源的敏感信息）进入本地账本。
+  return {
+    version: VERSION,
+    accounts: source.accounts.map(a => ({ id: a.id, name: a.name, group: a.group, note: a.note })),
+    roles: source.roles.map(r => ({ id: r.id, accountId: r.accountId, name: r.name, server: r.server, school: r.school, level: r.level, gameId: r.gameId, purchaseMode: r.purchaseMode, purchaseCents: r.purchaseCents, note: r.note, ...(r.race != null ? { race: r.race } : {}), ...(r.calculation != null ? { calculation: cleanCalculation(r.calculation) } : {}) })),
+    assets: source.assets.map(a => ({ id: a.id, roleId: a.roleId, category: a.category, name: a.name, costCents: a.costCents, included: a.included, date: a.date, detail: a.detail, note: a.note,
+      ...(a.nameGenerated != null ? { nameGenerated: a.nameGenerated } : {}),
+      ...(a.originalName != null ? { originalName: a.originalName } : {}),
+      ...(a.subtype != null ? { subtype: a.subtype } : {}),
+      ...(a.purchaseKind != null ? { purchaseKind: a.purchaseKind } : {}),
+      ...(a.contents != null ? { contents: a.contents } : {}),
+      ...(a.quantity != null ? { quantity: a.quantity } : {}),
+      ...(a.attributes != null ? { attributes: cleanAttributes(a.attributes) } : {})
+    }))
+  }
+}
+function cleanCalculation(a: CalculationRules): CalculationRules {
+  const result: CalculationRules = {}
+  for (const key of ['fixedEnabled', 'fixedDamageRate', 'fixedAgilityRate', 'magicDamageRate', 'powerRate', 'enduranceRate']) if (a[key] != null) result[key] = a[key]
+  return result
+}
+function cleanAttributes(a: AssetAttributes): AssetAttributes {
+  const result: AssetAttributes = {}
+  for (const key of ['slot', 'level', 'gem', 'gemRank', 'effect', 'petType', 'skills', 'growth', 'setEffect', 'specialSkill', 'specialEffects', 'starRank', 'bellSet', 'bellLevel', 'dustRank', 'jadeKind', 'jadeEffects', 'ambushSkills', 'itemId', 'itemName', 'extraGem', 'extraGemRank', 'valuesStage']) if (a[key] != null) result[key] = a[key]
+  for (const key of ['greenAttributes', 'baseAttributes']) if (a[key] != null) result[key] = (a[key] as NumericAttribute[]).map(r => {
+    const row: NumericAttribute = { kind: r.kind, value: r.value }
+    if (r.unit != null) row.unit = r.unit
+    if (r.perRank != null) row.perRank = r.perRank
+    return row
+  })
+  return result
+}
+export function demoLedger(): Ledger {
+  const data = emptyLedger()
+  const schools = ['化生寺', '女儿村', '无底洞', '普陀山', '阴曹地府']
+  for (let i = 0; i < 5; i++) {
+    const accountId = 'demo-account-' + i
+    const roleId = 'demo-role-' + i
+    data.accounts.push({ id: accountId, name: '示例账号 ' + (i + 1), group: '示例五开队', note: '虚构演示数据，可编辑或删除' })
+    data.roles.push({ id: roleId, accountId, name: ['云间听风', '月下折花', '长安旧梦', '山海有期', '星河入梦'][i], server: '示例服务器', school: schools[i], level: 109, gameId: '', purchaseMode: 'bundle', purchaseCents: (6000 + i * 500) * 100, note: '价格为虚构示例，不代表市场行情' })
+    data.assets.push({ id: 'demo-eq-' + i, roleId, category: 'equipment', subtype: 'gear', purchaseKind: 'single', attributes: { slot: '武器', level: 100 }, name: '100级武器', costCents: 120000, included: true, date: '', detail: '随角色购入，已包含在整号价格中', note: '' })
+    data.assets.push({ id: 'demo-pet-' + i, roleId, category: 'pet', name: '须弥画魂', costCents: (800 + i * 100) * 100, included: false, date: '', detail: '后续购入 · 4技能', note: '' })
+    data.assets.push({ id: 'demo-other-' + i, roleId, category: 'other', name: '修炼投入', costCents: 20000, included: false, date: '', detail: '', note: '' })
+  }
+  return validateLedger(data)
+}

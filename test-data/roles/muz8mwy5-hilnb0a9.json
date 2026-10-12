@@ -1,0 +1,61 @@
+{
+  "app": "mhxy-cost-ledger",
+  "exportedAt": "2026-10-08T09:56:07.137Z",
+  "scope": "role",
+  "roleId": "muz8mwy5-hilnb0a9",
+  "data": {
+    "version": 2,
+    "accounts": [
+      {
+        "id": "muz8ls7p-w9jgttk8",
+        "name": "花音",
+        "group": "129",
+        "note": ""
+      }
+    ],
+    "roles": [
+      {
+        "id": "muz8mwy5-hilnb0a9",
+        "accountId": "muz8ls7p-w9jgttk8",
+        "name": "龙宫",
+        "server": "追忆再续",
+        "school": "龙宫",
+        "level": 129,
+        "gameId": "",
+        "purchaseMode": "self",
+        "purchaseCents": 0,
+        "note": "从0起号"
+      }
+    ],
+    "assets": [
+      {
+        "id": "muz8y3me-t5kscrb3",
+        "roleId": "muz8mwy5-hilnb0a9",
+        "category": "pet",
+        "name": "全力幻姬+40伤高连套",
+        "costCents": 70000,
+        "included": false,
+        "date": "",
+        "detail": "",
+        "note": "",
+        "subtype": "pet",
+        "purchaseKind": "set",
+        "contents": "",
+        "quantity": 4
+      },
+      {
+        "id": "muz8ynhf-z9sf61yl",
+        "roleId": "muz8mwy5-hilnb0a9",
+        "category": "other",
+        "name": "坐骑成长",
+        "costCents": 4500,
+        "included": false,
+        "date": "",
+        "detail": "",
+        "note": "",
+        "subtype": "mount",
+        "purchaseKind": "single"
+      }
+    ]
+  }
+}

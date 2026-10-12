@@ -1,0 +1,128 @@
+import { assetSubtype, equipmentPosition, isEquipmentSet } from './ledger.uts'
+import type { Asset, Role, NumericAttribute } from './ledger.uts'
+export type AttributeMetric = { key: string; label: string; initial: number | null; bonus: number | null; value: number | null; unit: string; formula: string }
+export type EquipmentCalculation = { metrics: AttributeMetric[]; notes: string[] }
+export const RACES = [{ key: 'human', label: '人族', power: 0.67, endurance: 1.5 }, { key: 'demon', label: '魔族', power: 0.77, endurance: 1.3 }, { key: 'immortal', label: '仙族', power: 0.57, endurance: 1.6 }]
+export const FIXED_PRESETS = [
+  { school: '普陀山', damage: 0.24, agility: 0.7, condition: '对NPC五行法术基础模型，伤害换算需借灵；仅武器伤害参与' },
+  { school: '女儿村', damage: 0.18, agility: 0.5, condition: '对NPC雨落寒沙基础模型，伤害换算需暗伤' },
+  { school: '阴曹地府', damage: 0.15, agility: 0.35, condition: '对NPC阎罗令基础模型，伤害换算需对应阎罗经脉' },
+  { school: '无底洞', damage: 0.25, agility: 0.7, condition: '对NPC夺命咒秒脉基础模型；奶脉需单独校准系数' }
+]
+export const BASE_FIELDS = { 武器: ['伤害', '命中'], 项链: ['灵力'], 头部: ['防御', '魔法'], 衣服: ['防御'], 腰带: ['防御', '气血'], 鞋: ['防御', '敏捷'] }
+export const GEM_RULES = [
+  { name:'太阳石', kind:'伤害', amount:8, slots:['武器','头部'] }, { name:'红玛瑙', kind:'命中', amount:25, slots:['武器','头部'] },
+  { name:'舍利子', kind:'灵力', amount:6, slots:['衣服','项链'] }, { name:'月亮石', kind:'防御', amount:12, slots:['衣服','头部'] },
+  { name:'光芒石', kind:'气血', amount:40, slots:['衣服','腰带'] }, { name:'黑宝石', kind:'速度', amount:8, slots:['腰带','鞋'] },
+  { name:'翡翠石', kind:'法术防御', amount:12, slots:['衣服'] }, { name:'神秘石', kind:'躲避', amount:20, slots:['武器','腰带','鞋'] },
+  { name:'红宝石', kind:'火系吸收', amount:4, slots:['项链','鞋'] }, { name:'黄宝石', kind:'雷系吸收', amount:4, slots:['项链','鞋'] },
+  { name:'蓝宝石', kind:'水系吸收', amount:4, slots:['项链','鞋'] }, { name:'绿宝石', kind:'土系吸收', amount:4, slots:['项链','鞋'] }
+]
+export function valueText(value: number | null, unit = ''): string { return value == null ? '未完整填写' : String(Math.round((value + Number.EPSILON) * 100) / 100) + unit }
+export function equipmentCalculation(asset: Asset, role: Role): EquipmentCalculation {
+  const metrics: AttributeMetric[] = []
+  const notes: string[] = []
+  const a = asset.attributes
+  if (asset.category !== 'equipment' || !a) return { metrics, notes }
+  if (isEquipmentSet(asset)) return { metrics, notes: ['旧组合无法按单件换算，请逐件重录。'] }
+  const type = assetSubtype(asset)
+  const slot = equipmentPosition(asset)
+  const base = a.baseAttributes || []
+  const greens = a.greenAttributes || []
+  const boosts: Record<string, number> = {}
+  const unknown = new Set<string>()
+  const totals: Record<string, number | null> = {}
+  const statKey = (kind: string, unit: string) => kind + (unit ? ':' + unit : '')
+  const addTotal = (kind: string, unit: string, value: number | null) => {
+    const key = statKey(kind, unit)
+    totals[key] = value == null || (key in totals && totals[key] == null) ? null : (totals[key] || 0) + value
+  }
+  const sum = (kind: string): number | null => kind in totals ? totals[kind] : 0
+  const addMetric = (key: string, label: string, initial: number | null, bonus: number | null, value: number | null, unit: string, formula: string) => { metrics.push({ key, label, initial, bonus, value, unit, formula }) }
+  if (type === 'gear') {
+    for (const gem of [{ name:a.gem || '', rank:a.gemRank }, { name:a.extraGem || '', rank:a.extraGemRank }]) {
+      if (!gem.name) { if (gem.rank) { notes.push('有宝石锻数但缺少类型，加成尚未计算。'); for (const kind of ['伤害','命中','灵力','防御','气血','速度']) unknown.add(kind) }; continue }
+      const rule = GEM_RULES.find(r => r.name === gem.name)
+      if (!rule) { notes.push('未收录的宝石不猜测加成：' + gem.name); for (const kind of ['伤害','命中','灵力','防御','气血','速度']) unknown.add(kind); continue }
+      if (!rule.slots.includes(slot) || gem.rank == null) { unknown.add(rule.kind); notes.push(gem.rank == null ? gem.name + '缺少锻数。' : gem.name + '与当前部位不匹配，加成尚未计算。'); continue }
+      boosts[rule.kind] = (boosts[rule.kind] || 0) + rule.amount * gem.rank
+    }
+    const required: string[] = BASE_FIELDS[slot] || []
+    const kinds = Array.from(new Set([...required, ...base.map(r => r.kind), ...Object.keys(boosts), ...Array.from(unknown)]))
+    for (const kind of kinds) {
+      const recorded = base.find(r => r.kind === kind && !r.unit)
+      const initial = recorded ? recorded.value : required.includes(kind) ? null : 0
+      const bonus = unknown.has(kind) ? null : boosts[kind] || 0
+      const value = initial == null || bonus == null ? null : initial + bonus
+      const unit = kind.endsWith('吸收') ? '%' : ''
+      addMetric('base:' + kind, kind, initial, bonus, value, unit, '未镶嵌初始值 + 该属性宝石增量')
+      addTotal(kind, unit, value)
+    }
+  } else {
+    for (const row of base) { addMetric('base:' + row.kind, '基础' + row.kind, row.value, 0, row.value, row.unit || '', '基础词条不叠加星辉石/灵尘'); addTotal(row.kind, row.unit || '', row.value) }
+  }
+  const initialMode = type !== 'gear' && a.valuesStage === 'initial'
+  let rank: number | null = type === 'jade' ? a.dustRank == null ? null : a.dustRank : a.starRank == null ? null : a.starRank
+  if (initialMode && type === 'jade' && rank != null) {
+    const same = greens.filter(r => base.some(b => b.kind === r.kind && (b.unit || '') === (r.unit || ''))).length
+    const actual = rank + same
+    const full = role.level / 10
+    rank = role.level > 0 ? Math.min(actual, full) + Math.max(0, actual - full) * 0.5 : null
+    notes.push('玉魄灵尘：镶嵌等级+' + same + '级同属性奖励；超过人物等级/10的增量按50%估算，有效等级 ' + valueText(rank) + '。')
+  }
+  for (let index = 0; index < greens.length; index++) {
+    const row = greens[index]
+    const bonus = initialMode ? rank == null || row.perRank == null ? null : rank * row.perRank : 0
+    const value = bonus == null ? null : row.value + bonus
+    addMetric('green:' + index + ':' + row.kind, (type === 'gear' ? '绿字' : '附加') + row.kind + ' #' + (index + 1), row.value, bonus, value, row.unit || '', initialMode ? '初始值 + 每级增量 × 有效强化等级' : '按录入的当前成品值，不重复叠加强化')
+    addTotal(row.kind, row.unit || '', value)
+    if (initialMode && bonus == null) notes.push('附加' + row.kind + '缺少强化等级或每级增量，成品值尚未计算。')
+  }
+  const greenSum = (kind: string) => greens.filter(r => r.kind === kind && !r.unit).reduce((n,r) => n+r.value,0)
+  const race = RACES.find(r => r.key === role.race)
+  const damage = sum('伤害')
+  if (slot === '武器' && type === 'gear') {
+    const hit = sum('命中')
+    const total = damage == null || hit == null ? null : damage + hit / 3
+    addMetric('weapon:total','武器综合总伤',null,null,total,'','强化后伤害 + 强化后命中 ÷ 3；不含绿字力量')
+    const power = role.calculation?.powerRate != null ? role.calculation.powerRate : race?.power
+    addMetric('weapon:power','含力量等效总伤',null,null,total == null || power == null ? null : total + greenSum('力量') * power,'','综合总伤 + 绿字力量 × 种族系数；可在角色设置中校准')
+    const spirit = greenSum('魔力')*0.7 + greenSum('力量')*0.4 + greenSum('体质')*0.3 + greenSum('耐力')*0.2
+    const rate = role.calculation?.magicDamageRate != null ? role.calculation.magicDamageRate : 0.25
+    addMetric('weapon:magic','武器法伤贡献估算',null,null,damage == null ? null : damage * rate + spirit,'','强化后伤害 × ' + rate + ' + 魔力×0.7 + 力量×0.4 + 体质×0.3 + 耐力×0.2；命中不参与')
+    if (!race && power == null) notes.push('未设置种族，力量等效总伤尚未计算；法伤基础模型的灵力系数不因种族改变。')
+  }
+  if (type === 'gear' && ((BASE_FIELDS[slot] || []).includes('防御') || greenSum('耐力') !== 0)) {
+    const rate = role.calculation?.enduranceRate != null ? role.calculation.enduranceRate : race?.endurance
+    const defense = sum('防御')
+    addMetric('contribution:defense','含耐力防御贡献估算',null,null,rate == null || defense == null ? null : defense + greenSum('耐力') * rate,'','强化后防御 + 绿字耐力 × 种族系数；未计门派技能/经脉')
+  }
+  if (role.calculation?.fixedEnabled) {
+    const preset = FIXED_PRESETS.find(p => p.school === role.school)
+    const damageRate = role.calculation.fixedDamageRate != null ? role.calculation.fixedDamageRate : preset?.damage
+    const agilityRate = role.calculation.fixedAgilityRate != null ? role.calculation.fixedAgilityRate : preset?.agility
+    const eligibleDamage = role.school === '普陀山' && slot !== '武器' ? 0 : damage
+    const agility = sum('敏捷')
+    const value = damageRate == null || agilityRate == null || eligibleDamage == null || agility == null ? null : eligibleDamage * damageRate + agility * agilityRate
+    addMetric('contribution:fixed','固伤基础换算估算',null,null,value,'','伤害 × ' + (damageRate == null ? '待设' : damageRate) + ' + 敏捷 × ' + (agilityRate == null ? '待设' : agilityRate) + '；命中不参与，直接固定伤害词条单独展示')
+    notes.push(preset?.condition || '此门派没有预设，请在角色中填写实际技能对应的换算系数。')
+  }
+  return { metrics, notes: Array.from(new Set(notes)) }
+}
+export function comparisonMetrics(asset: Asset, role: Role): AttributeMetric[] {
+  const calculation = equipmentCalculation(asset, role)
+  const result = calculation.metrics.filter(m => !m.key.startsWith('green:'))
+  for (const metric of calculation.metrics.filter(m => m.key.startsWith('green:'))) {
+    const row = asset.attributes?.greenAttributes?.[Number(metric.key.split(':')[1])]
+    if (!row) continue
+    const key = 'addon:' + row.kind + ':' + metric.unit
+    const previous = result.find(m => m.key === key)
+    if (!previous) result.push({ key, label:'附加' + row.kind + '合计', initial:metric.initial, bonus:metric.bonus, value:metric.value, unit:metric.unit, formula:'同名词条合计；与基础词条分开比较' })
+    else {
+      previous.initial = previous.initial == null || metric.initial == null ? null : previous.initial + metric.initial
+      previous.bonus = previous.bonus == null || metric.bonus == null ? null : previous.bonus + metric.bonus
+      previous.value = previous.value == null || metric.value == null ? null : previous.value + metric.value
+    }
+  }
+  return result
+}

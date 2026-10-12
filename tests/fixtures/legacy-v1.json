@@ -1,0 +1,143 @@
+{
+  "app": "mhxy-cost-ledger",
+  "exportedAt": "2026-10-08T08:22:19.238Z",
+  "scope": "role",
+  "roleId": "muz8mwy5-hilnb0a9",
+  "data": {
+    "version": 1,
+    "accounts": [
+      {
+        "id": "muz8ls7p-w9jgttk8",
+        "name": "花音",
+        "group": "129",
+        "note": ""
+      }
+    ],
+    "roles": [
+      {
+        "id": "muz8mwy5-hilnb0a9",
+        "accountId": "muz8ls7p-w9jgttk8",
+        "name": "龙宫",
+        "server": "追忆再续",
+        "school": "龙宫",
+        "level": 129,
+        "gameId": "",
+        "purchaseMode": "bundle",
+        "purchaseCents": 0,
+        "note": "从0起号"
+      }
+    ],
+    "assets": [
+      {
+        "id": "muz8pk9o-qr82wc9i",
+        "roleId": "muz8mwy5-hilnb0a9",
+        "category": "equipment",
+        "name": "70如意魔力套双7锻黑-女",
+        "costCents": 50000,
+        "included": false,
+        "date": "",
+        "detail": "",
+        "note": ""
+      },
+      {
+        "id": "muz8qy59-wqjdr73r",
+        "roleId": "muz8mwy5-hilnb0a9",
+        "category": "equipment",
+        "name": "182初灵项链7锻舍",
+        "costCents": 46000,
+        "included": false,
+        "date": "",
+        "detail": "",
+        "note": ""
+      },
+      {
+        "id": "muz8rz8c-smi9czhw",
+        "roleId": "muz8mwy5-hilnb0a9",
+        "category": "equipment",
+        "name": "27魔力女衣7锻舍",
+        "costCents": 15000,
+        "included": false,
+        "date": "",
+        "detail": "",
+        "note": ""
+      },
+      {
+        "id": "muz8spsi-5flnhn89",
+        "roleId": "muz8mwy5-hilnb0a9",
+        "category": "equipment",
+        "name": "垃圾武器",
+        "costCents": 4000,
+        "included": false,
+        "date": "",
+        "detail": "",
+        "note": ""
+      },
+      {
+        "id": "muz8v7p7-ju69jv83",
+        "roleId": "muz8mwy5-hilnb0a9",
+        "category": "equipment",
+        "name": "前排灵饰3锻",
+        "costCents": 12000,
+        "included": false,
+        "date": "",
+        "detail": "",
+        "note": ""
+      },
+      {
+        "id": "muz8w07c-i071iprr",
+        "roleId": "muz8mwy5-hilnb0a9",
+        "category": "equipment",
+        "name": "后排灵饰3锻",
+        "costCents": 5000,
+        "included": false,
+        "date": "",
+        "detail": "",
+        "note": ""
+      },
+      {
+        "id": "muz8wiem-jb3a74v6",
+        "roleId": "muz8mwy5-hilnb0a9",
+        "category": "equipment",
+        "name": "前排阳玉3锻",
+        "costCents": 4000,
+        "included": false,
+        "date": "",
+        "detail": "",
+        "note": ""
+      },
+      {
+        "id": "muz8wtp0-wpgdn2cd",
+        "roleId": "muz8mwy5-hilnb0a9",
+        "category": "equipment",
+        "name": "后排阴玉3锻",
+        "costCents": 3000,
+        "included": false,
+        "date": "",
+        "detail": "",
+        "note": ""
+      },
+      {
+        "id": "muz8y3me-t5kscrb3",
+        "roleId": "muz8mwy5-hilnb0a9",
+        "category": "pet",
+        "name": "全力幻姬+40伤高连套",
+        "costCents": 70000,
+        "included": false,
+        "date": "",
+        "detail": "",
+        "note": ""
+      },
+      {
+        "id": "muz8ynhf-z9sf61yl",
+        "roleId": "muz8mwy5-hilnb0a9",
+        "category": "other",
+        "name": "坐骑成长",
+        "costCents": 4500,
+        "included": false,
+        "date": "",
+        "detail": "",
+        "note": ""
+      }
+    ]
+  }
+}

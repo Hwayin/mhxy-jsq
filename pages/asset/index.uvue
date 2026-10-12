@@ -1,0 +1,76 @@
+<template>
+  <view class="page page-with-dock">
+    <text v-if="error" class="error">{{ error }}</text>
+    <view v-if="asset && role && !error" class="asset-detail">
+      <view class="row detail-heading"><ItemIcon :item-id="asset?.attributes?.itemId || ''" :item-name="asset?.attributes?.itemName || ''" :label="typeLabel" :large="true" /><view class="grow detail-caption"><text class="title detail-title">{{ displayTitle }}</text><text class="subtitle">{{ role?.name }} · {{ role?.school }} · {{ typeLabel }}</text></view><text class="detail-menu" @click="detailMenu">•••</text></view>
+      <view v-if="keyMetrics.length" class="card"><text class="section-title">关键属性</text><view v-for="metric in keyMetrics" :key="metric.key" class="between asset-metric"><text class="body">{{ metric.label }}</text><text class="money">{{ valueText(metric.value,metric.unit) }}</text></view></view>
+      <view class="card">
+        <view class="between"><text class="label">{{ asset?.included ? '随号参考价' : '实际投入' }}</text><text class="money">{{ money(asset?.costCents || 0) }}</text></view>
+        <text class="muted">{{ asset?.included ? '购号价已包含，不重复计入' : '计入角色新增投入' }}</text>
+        <text class="detail-name body">完整名称：{{ asset?.name }}</text>
+        <text v-if="asset?.originalName" class="muted">原记录名称：{{ asset?.originalName }}</text>
+        <text v-if="asset?.date" class="muted">购入日期：{{ asset?.date }}</text>
+      </view>
+      <view class="card">
+        <text class="section-title">配置明细</text>
+        <text class="body detail-copy">{{ configurationText || '尚未配置属性' }}</text>
+        <text v-if="asset?.attributes?.valuesStage" class="muted">附加属性口径：{{ asset?.attributes?.valuesStage === 'initial' ? '初始值＋强化' : '当前成品值' }}</text>
+        <text v-if="asset?.contents" class="body detail-copy">组合内容：{{ asset?.contents }}</text>
+        <text v-if="asset?.detail" class="body detail-copy">补充属性：{{ asset?.detail }}</text>
+        <text v-if="asset?.note" class="body detail-copy">备注：{{ asset?.note }}</text>
+      </view>
+      <view v-if="asset?.category === 'equipment'" class="card">
+        <view class="between" @click="formulasOpen = !formulasOpen"><text class="section-title">全部属性与换算</text><text class="link">{{ formulasOpen ? '收起公式' : '查看公式' }} ›</text></view>
+        <text class="muted detail-copy">{{ role?.school }} · {{ raceLabel }}。估算项按角色配置计算。</text>
+        <view v-for="metric in calculation.metrics" :key="metric.key" class="asset-metric">
+          <view class="between"><text class="body metric-label">{{ metric.label }}</text><text class="money metric-value">{{ valueText(metric.value,metric.unit) }}</text></view>
+          <text v-if="metric.initial != null || metric.bonus != null" class="muted">{{ valueText(metric.initial,metric.unit) }} ＋ {{ valueText(metric.bonus,metric.unit) }} → {{ valueText(metric.value,metric.unit) }}</text>
+          <text v-if="formulasOpen" class="muted metric-formula">{{ metric.formula }}</text>
+        </view>
+        <text v-for="(note,index) in calculation.notes" :key="index" class="notice-text detail-copy">{{ note }}</text>
+      </view>
+      <view class="action-dock" :style="{ paddingBottom: dockPadding }"><button class="primary dock-button" @click="editAsset">编辑明细</button></view>
+    </view>
+    <view v-else-if="!error" class="card empty"><text class="body">明细不存在或已删除</text></view>
+    <view class="spacer"></view>
+  </view>
+</template>
+<script setup>
+import { safeBottomPadding } from '../../lib/ui-layout.uts'
+const dockPadding = ref(safeBottomPadding())
+onResize(() => { dockPadding.value = safeBottomPadding() })
+import { emptyLedger, attributeText, money, subtypeLabel, errorMessage, removeRecord } from '../../lib/ledger.uts'
+import { loadLedger, saveLedger } from '../../lib/storage.uts'
+import ItemIcon from '../../components/item-icon.uvue'
+import { equipmentCalculation, valueText, RACES } from '../../lib/equipment-calc.uts'
+import { equipmentCardTitle, equipmentCardMetrics } from '../../lib/equipment-display.uts'
+const id = ref('')
+const data = ref(emptyLedger())
+const error = ref('')
+const formulasOpen = ref(false)
+const asset = computed(() => data.value.assets.find(a => a.id === id.value))
+const role = computed(() => data.value.roles.find(r => r.id === asset.value?.roleId))
+const displayTitle = computed(() => asset.value ? equipmentCardTitle(asset.value) : '')
+const typeLabel = computed(() => asset.value ? subtypeLabel(asset.value) : '')
+const configurationText = computed(() => asset.value ? attributeText(asset.value) : '')
+const raceLabel = computed(() => RACES.find(r => r.key === role.value?.race)?.label || '种族待设置')
+const calculation = computed(() => asset.value && role.value ? equipmentCalculation(asset.value,role.value) : {metrics:[],notes:[]})
+const keyMetrics = computed(() => asset.value?.category === 'equipment' && role.value ? equipmentCardMetrics(asset.value, role.value, 'auto') : [])
+function detailMenu() { uni.showActionSheet({ itemList: ['编辑明细', '删除明细'], success: res => { if (res.tapIndex === 0) editAsset(); else deleteAsset() } }) }
+function deleteAsset() { uni.showModal({ title: '删除明细？', content: '删除「' + (asset.value?.name || '') + '」？', success: res => { if (!res.confirm) return; try { saveLedger(removeRecord(loadLedger(), 'assets', id.value)); uni.navigateBack() } catch(e) { error.value = errorMessage(e) } } }) }
+onLoad(options => { id.value = options.id || '' })
+onPageShow(() => { try { data.value = loadLedger(); error.value = '' } catch(e) { error.value = errorMessage(e) } })
+function editAsset() { uni.navigateTo({url:'/pages/editor/index?kind=assets&id='+encodeURIComponent(id.value)}) }
+</script>
+<style>
+.detail-name { margin-top: 18rpx; }
+.detail-copy { margin-top: 16rpx; }
+.asset-metric { margin-top: 22rpx; padding-top: 18rpx; border-top: 1rpx solid #e8ebe2; }
+.metric-label { flex: 1; margin-right: 20rpx; }
+.metric-value { font-size: 26rpx; }
+.metric-formula { margin-top: 8rpx; }
+.detail-heading { align-items: center; }
+.detail-caption { margin-left: 24rpx; }
+.detail-title { font-size: 36rpx; line-height: 50rpx; }
+.detail-menu { color: #6d7e74; font-size: 28rpx; padding: 20rpx 8rpx; }
+</style>

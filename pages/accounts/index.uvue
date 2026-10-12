@@ -1,0 +1,64 @@
+<template>
+  <view class="page">
+    <view class="between"><text class="title">我的账号</text><text class="link" @click="edit('accounts')">＋ 新增</text></view>
+    <text class="subtitle">按账号归档，按队伍看投入。</text>
+    <input class="field search" :value="query" @input="query = $event.detail.value" placeholder="搜索账号、角色、门派或服务器" />
+    <view class="chip-row"><text :class="['chip', !group ? 'chip-active' : '']" @click="group = ''">全部队伍</text><text v-for="name in groups" :key="name" :class="['chip', group === name ? 'chip-active' : '']" @click="group = name">{{ name }}</text></view>
+    <text v-if="error" class="error">{{ error }}</text>
+    <view v-if="!error && !accounts.length" class="card empty"><text class="body">{{ query ? '没有匹配的记录' : '还没有账号记录' }}</text><button v-if="!query" class="primary" @click="edit('accounts')">添加第一个账号</button></view>
+    <view v-for="account in accounts" :key="account.id" class="card">
+      <view class="between"><text class="section-title">{{ account.name }}</text><text class="account-menu" @click="accountMenu(account)">•••</text></view>
+      <view class="between account-meta"><text class="tag">{{ account.group || '未分组' }}</text><text class="money">{{ money(accountTotal(account.id)) }}</text></view>
+      <text v-if="account.note" class="muted">{{ account.note }}</text>
+      <view v-for="role in rolesFor(account.id)" :key="role.id" class="role-row" @click="openRole(role.id)">
+        <view class="avatar"><text class="avatar-text">{{ role.school.slice(0, 1) }}</text></view>
+        <view class="grow"><text class="body">{{ role.name }}</text><text class="muted">{{ role.level }}级 · {{ role.school }} · {{ role.server }}</text></view>
+        <view class="role-cost"><text class="money role-money">{{ money(roleSummary(data, role.id)?.total || 0) }}</text><text class="muted">查看 ›</text></view>
+      </view>
+      <view class="divider"></view>
+      <text class="link add-role" @click="edit('roles', '', account.id)">＋ 添加角色</text>
+    </view>
+    <view class="notice"><text class="notice-text">账号使用自定义别名即可。请勿在备注里保存登录密码。</text></view>
+    <view class="spacer"></view>
+  </view>
+</template>
+<script setup>
+import { emptyLedger, money, roleSummary, removeRecord, errorMessage } from '../../lib/ledger.uts'
+import type { Account } from '../../lib/ledger.uts'
+import { loadLedger, saveLedger } from '../../lib/storage.uts'
+const data = ref(emptyLedger())
+const query = ref('')
+const group = ref('')
+const groups = computed(() => [...new Set(data.value.accounts.map(a => a.group).filter(Boolean))])
+const error = ref('')
+const accounts = computed(() => {
+  const q = query.value.trim().toLowerCase()
+  return data.value.accounts.filter(a => (!group.value || a.group === group.value) && (!q || (a.name + ' ' + a.group).toLowerCase().includes(q) || data.value.roles.some(r => r.accountId === a.id && (r.name + ' ' + r.school + ' ' + r.server).toLowerCase().includes(q))))
+})
+function rolesFor(id: string) { return data.value.roles.filter(r => r.accountId === id) }
+function accountTotal(id: string) { return rolesFor(id).reduce((sum, r) => sum + (roleSummary(data.value, r.id)?.total || 0), 0) }
+onPageShow(() => { try { data.value = loadLedger(); error.value = ''; if (!groups.value.includes(group.value)) group.value = '' } catch (e) { error.value = errorMessage(e) } })
+function accountMenu(account: Account) { uni.showActionSheet({ itemList: ['编辑账号', '删除账号'], success: res => { if (res.tapIndex === 0) edit('accounts', account.id); else remove(account) } }) }
+function edit(kind: string, id = '', parent = '') { uni.navigateTo({ url: '/pages/editor/index?kind=' + kind + '&id=' + encodeURIComponent(id) + '&parent=' + encodeURIComponent(parent) }) }
+function openRole(id: string) { uni.navigateTo({ url: '/pages/role/index?id=' + encodeURIComponent(id) }) }
+function remove(account: Account) {
+  const roles = rolesFor(account.id)
+  const assets = data.value.assets.filter(a => roles.some(r => r.id === a.roleId))
+  uni.showModal({ title: '删除账号？', content: '将删除「' + account.name + '」及其 ' + roles.length + ' 个角色、' + assets.length + ' 笔资产明细。', success: res => {
+    if (!res.confirm) return
+    try { data.value = saveLedger(removeRecord(loadLedger(), 'accounts', account.id)); error.value = '' }
+    catch (e) { error.value = errorMessage(e) }
+  } })
+}
+</script>
+<style>
+.search { margin-top: 28rpx; background-color: #eaece3; }
+.account-meta { margin-top: 18rpx; margin-bottom: 14rpx; }
+.role-row { flex-direction: row; align-items: center; margin-top: 24rpx; }
+.avatar { width: 74rpx; height: 74rpx; border-radius: 20rpx; background-color: #e7f0ea; align-items: center; justify-content: center; margin-right: 18rpx; }
+.avatar-text { font-size: 32rpx; color: #287565; font-weight: bold; }
+.account-menu { font-size: 28rpx; color: #6d7e74; padding: 22rpx; }
+.role-cost { align-items: flex-end; margin-left: 16rpx; }
+.role-money { font-size: 24rpx; }
+.add-role { text-align: center; }
+</style>
