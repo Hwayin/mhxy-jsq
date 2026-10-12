@@ -7,19 +7,24 @@ export async function verifyApk(fs: any, path: string, release: ApkRelease, canc
   const buffer = new ArrayBuffer(131072)
   let total = 0
   try {
-    while (true) {
+    if (cancelled()) throw new Error('已取消更新')
+    const size = fs.fstatSync({ fd }).size
+    if (size !== release.size) throw new Error('安装包大小不匹配（应为 ' + release.size + ' 字节，实际 ' + size + ' 字节），请重新下载')
+    while (total < release.size) {
       if (cancelled()) throw new Error('已取消更新')
-      const result = fs.readSync({ fd, arrayBuffer: buffer, offset: 0, length: buffer.byteLength })
-      if (result.bytesRead === 0) break
+      // Android 实现会把省略的 position 设为 0，必须明确指定每块的文件偏移。
+      // 按实际大小结束循环，避免依赖原生 EOF 的 -1/0 差异。
+      const length = Math.min(buffer.byteLength,release.size-total)
+      const result = fs.readSync({ fd, arrayBuffer: buffer, offset: 0, position: total, length })
+      if (!Number.isInteger(result.bytesRead) || result.bytesRead <= 0 || result.bytesRead > length || result.arrayBuffer.byteLength < result.bytesRead) throw new Error('安装包读取不完整，请重新下载')
       const bytes = new Uint8Array(result.arrayBuffer,0,result.bytesRead)
       if (total === 0 && (bytes.length < 4 || bytes[0] !== 80 || bytes[1] !== 75 || bytes[2] !== 3 || bytes[3] !== 4)) throw new Error('下载内容不是 APK 安装包')
       total += bytes.length
-      if (total > release.size) throw new Error('安装包大小不匹配，请重新下载')
       hash.update(bytes)
       progress(Math.floor(total/release.size*100))
       await new Promise<void>(resolve => { setTimeout(resolve,0) })
     }
     if (cancelled()) throw new Error('已取消更新')
-    if (total !== release.size || hash.digest() !== release.sha256) throw new Error('安装包校验失败，请重新下载')
+    if (fs.fstatSync({ fd }).size !== release.size || hash.digest() !== release.sha256) throw new Error('安装包校验失败，请重新下载')
   } finally { fs.closeSync({ fd }) }
 }

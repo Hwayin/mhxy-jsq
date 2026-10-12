@@ -14,6 +14,7 @@ async function moduleUrl(name) {
 const { Sha256 } = await import(await moduleUrl('sha256'))
 const { parseApkRelease, newerRelease } = await import(await moduleUrl('update-model'))
 const { createUpdateController } = await import(await moduleUrl('update-controller'))
+const { verifyApk } = await import(await moduleUrl('apk-verify'))
 const apk = Buffer.concat([Buffer.from([80,75,3,4]),randomBytes(150000)])
 const release = { type:'apk', platform:'android', appId:'__UNI__A9783A2', packageName:'uni.app.UNIA9783A2', versionName:'0.8.0', versionCode:800, url:'https://github.com/Hwayin/mhxy-jsq/releases/download/v0.8.0/mhxy-ledger-0.8.0.apk', size:apk.length, sha256:createHash('sha256').update(apk).digest('hex'), notes:'更新说明' }
 
@@ -36,11 +37,13 @@ test('拒绝其他应用、任意下载地址和无效大小/摘要/版本',()=>
 
 function fixture(bytes=apk) {
   const state={phase:'idle',currentName:'0.7.0',currentCode:700,native:true,progress:0,message:'',latest:null}
-  const requests=[],downloads=[],installs=[],deleted=[],files=new Map(),handles=new Map()
+  const requests=[],downloads=[],installs=[],deleted=[],reads=[],files=new Map(),handles=new Map()
   let closed=0
   const fs={
-    openSync({filePath}) { if(!files.has(filePath)) throw Error('missing'); handles.set('fd',{bytes:files.get(filePath),offset:0}); return 'fd' },
-    readSync({fd,arrayBuffer,length}) {const h=handles.get(fd), n=Math.min(length,h.bytes.length-h.offset); new Uint8Array(arrayBuffer).set(h.bytes.subarray(h.offset,h.offset+n)); h.offset+=n; return {bytesRead:n,arrayBuffer}},
+    openSync({filePath}) { if(!files.has(filePath)) throw Error('missing'); handles.set('fd',{bytes:files.get(filePath)}); return 'fd' },
+    fstatSync({fd}) {return {size:handles.get(fd).bytes.length}},
+    // Android 官方实现：省略 position 时 seek(0)，EOF 返回 -1，不能模拟为自动前移。
+    readSync({fd,arrayBuffer,length,position=0}) {const h=handles.get(fd), n=Math.min(length,h.bytes.length-position); reads.push({position,length}); if(n<=0)return {bytesRead:-1,arrayBuffer}; new Uint8Array(arrayBuffer).set(h.bytes.subarray(position,position+n)); return {bytesRead:n,arrayBuffer}},
     closeSync({fd}) {handles.delete(fd); closed++},
     unlink({filePath}) {deleted.push(filePath); files.delete(filePath)}
   }
@@ -52,7 +55,7 @@ function fixture(bytes=apk) {
   const controller=createUpdateController(api,state)
   function available() { const checked=controller.check();requests.at(-1).success({statusCode:200,data:release}); requests.at(-1).complete();return checked }
   function succeed(task=downloads.at(-1),file='/cache/test.apk') {files.set(file,bytes);return task.options.success({statusCode:200,tempFilePath:file})}
-  return {state,controller,api,requests,downloads,installs,deleted,files,available,succeed,closed:()=>closed}
+  return {state,controller,api,requests,downloads,installs,deleted,reads,files,available,succeed,closed:()=>closed}
 }
 test('重复检查共用请求，404 与离线失败有可恢复的状态',async()=>{
   const f=fixture(), first=f.controller.check()
@@ -71,6 +74,40 @@ test('完整流程先校验再安装，调用安装器不声称更新完成，�
   f.installs[0].fail({});f.installs[0].complete();assert.equal(f.state.phase,'ready')
   f.controller.install();f.installs[1].success({});f.installs[1].complete()
   assert.equal(f.state.phase,'ready');assert.match(f.state.message,/系统安装/);assert.doesNotMatch(f.state.message,/更新成功/)
+})
+test('Android 固定起点与 -1 EOF 下按偏移读取，最后一块只读取剩余字节',async()=>{
+  for (const size of [131072,131073,262144,262151]) {
+    const bytes=Buffer.concat([Buffer.from([80,75,3,4]),randomBytes(size-4)])
+    const f=fixture(bytes), meta={...release,size,sha256:createHash('sha256').update(bytes).digest('hex')}
+    f.files.set('/cache/test.apk',bytes)
+    const progress=[]
+    await verifyApk(f.api.getFileSystemManager(),'/cache/test.apk',meta,()=>false,p=>progress.push(p))
+    assert.deepEqual(f.reads,Array.from({length:Math.ceil(size/131072)},(_,i)=>({position:i*131072,length:Math.min(131072,size-i*131072)})))
+    assert.equal(progress.at(-1),100);assert.equal(f.closed(),1)
+  }
+})
+test('读取不足一整块时按实际字节数推进偏移，摘要仍完整',async()=>{
+  const f=fixture(), fs=f.api.getFileSystemManager(), original=fs.readSync
+  fs.readSync=o=>original({...o,length:Math.min(o.length,8191)})
+  f.files.set('/cache/test.apk',apk)
+  await verifyApk(fs,'/cache/test.apk',release,()=>false,()=>{})
+  assert.equal(f.reads[1].position,8191);assert.equal(f.closed(),1)
+})
+test('真实文件大小异常在读取前拒绝，并显示应有和实际字节数',async()=>{
+  for(const bytes of [apk.subarray(0,500),Buffer.concat([apk,Buffer.from([0])])]) {
+    const f=fixture(bytes);await f.available();f.controller.download();await f.succeed()
+    assert.match(f.state.message,new RegExp('应为 '+apk.length+' 字节，实际 '+bytes.length+' 字节'))
+    assert.equal(f.reads.length,0);assert.equal(f.closed(),1);assert.equal(f.files.size,0)
+  }
+})
+test('提前 EOF 和异常读取计数不进入安装，关闭句柄并清理临时包',async()=>{
+  for(const count of [0,-1,131073,NaN,1.5]) {
+    const f=fixture(), fs=f.api.getFileSystemManager()
+    fs.readSync=o=>({bytesRead:count,arrayBuffer:o.arrayBuffer})
+    await f.available();f.controller.download();await f.succeed()
+    assert.match(f.state.message,/读取不完整/);assert.equal(f.state.phase,'error')
+    assert.equal(f.closed(),1);assert.equal(f.files.size,0);f.controller.install();assert.equal(f.installs.length,0)
+  }
 })
 test('HTML、截断及摘要不匹配均被拒绝并删除临时文件',async()=>{
   for (const bytes of [Buffer.from('<html>error</html>'),apk.subarray(0,500),Buffer.concat([apk.subarray(0,apk.length-1),Buffer.from([apk.at(-1)^255])])]) {

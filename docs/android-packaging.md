@@ -7,7 +7,7 @@
 | 应用名称 | 梦幻多开账本 |
 | DCloud AppID | `__UNI__A9783A2`（沿用当前工程） |
 | Android 包名 | `uni.app.UNIA9783A2` |
-| 版本 | `0.8.0` / `800` |
+| 版本 | `0.8.1` / `801` |
 | 模式 | uni-app x 蒸汽模式，字节码 |
 | 最低版本 | Android 6.0，API 23 |
 | 目标版本 | Android 16，API 36 |

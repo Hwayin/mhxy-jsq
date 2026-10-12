@@ -184,3 +184,13 @@ HBuilderX 5.26 Web 与 Android 前端编译通过；生成的 Android manifest �
 86 项测试通过，新增发布流程测试覆盖云任务失败/超时/身份错误、网络短暂失败重试、版本回退、预演无 GitHub 写入、上传中断后恢复草稿、未知草稿拒绝、附件缺失/大小/摘要错误阻止 Latest、同包重复运行、同版本不同包拒绝、正式包升级为 Latest、上传期间新版出现以及发布后匿名验证失败的重跑。PowerShell 语法检查通过，并修复默认 Windows PowerShell 对无 BOM 中文脚本的解析问题，调用本机工具时按 UTF-8 处理输出。
 
 使用真实已完成任务 `044c07b0-c5f1-11f1-87e0-456436f0c242`，在 Windows 默认 PowerShell 完成 `publish-apk-update.ps1 -Ticket ... -DryRun`：云状态 JSON 读取、APK 完整下载、实际包名/版本/证书/SHA-256 核验和已发布包判断成功。真实执行 `-Submit -Publish` 的预检确认当前 0.8.0 / 800 不高于 Latest，会在云提交前终止。现有 v0.8.0 的发布日期、两项附件及摘要保持原值；本轮没有创建新 APK 或新 Release，首次全自动正式发布留给下一次递增版本。草稿上传与 Latest 切换的失败分支通过模拟 GitHub 流程验证，未据此声称新版本已实际自动发布。
+
+## Android 下载后校验失败修复 v0.8.1（2026-10-12）
+
+用户新截图显示 0.7.1 下载 0.8.0 后提示「安装包大小不匹配」，尚未进入系统安装器。再次读取匿名线上元数据，与已匿名下载的 APK 对照：38,830,990 字节和 SHA-256 均一致。DCloud 官方 `ReadFileUtil.uts` 的 `readBufferByCondition` 在省略 position 时设为 0 并 seek(0)，EOF 使用 Java FileChannel 的 -1 返回值。旧代码误以为读取位置会自动前移，累计重复块后超出包大小；测试原先模拟自动前移，漏掉了此原生行为。
+
+将测试文件系统改为上述 Android 行为后，旧代码的正常安装流程和两项重试测试失败。修复为先 `fstatSync` 核对真实大小、每块传入实际偏移、按剩余长度读取，并按文件大小结束循环，保留完整 SHA-256 验证；提前 EOF 或异常计数拒绝安装，关闭句柄和清理临时文件。真正的大小错误显示应有和实际字节数。
+
+90 项测试通过，新增覆盖固定起点、-1 EOF、整块边界、末尾部分块、短读取、真实大小异常与异常读取计数。修复校验器直接读取真实 0.8.0 APK，与线上 SHA-256 对照通过。HBuilderX 5.26 Web / Android 前端编译成功，日志无错误或警告；隔离 Edge 更新页回归通过（404、新版本、同版本、无效元数据、浏览器限制、390/320px 与账本保留）。上述为标准运行时和 Android 行为模拟，未连接真机，手机中的新校验器仍待安装后验证。版本升为 0.8.1 / 801，使用原包名与云端证书；旧校验器无法靠服务器修改修复，需浏览器下载后覆盖安装一次，无须卸载。
+
+依据：[DCloud 官方 Android ReadFileUtil 实现](https://github.com/dcloudio/uni-api/blob/alpha/uni_modules/uni-fileSystemManager/utssdk/app-android/ReadFileUtil.uts)。

@@ -2,6 +2,8 @@ import assert from 'node:assert/strict'
 import { pathToFileURL, fileURLToPath } from 'node:url'
 import { mkdir } from 'node:fs/promises'
 import { ledger } from './load-ledger.mjs'
+import { readFile } from 'node:fs/promises'
+const manifest=JSON.parse(await readFile(new URL('../manifest.json',import.meta.url),'utf8'))
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE ? pathToFileURL(process.env.PLAYWRIGHT_MODULE).href : 'playwright')
 const browser = await chromium.launch({ channel: 'msedge', headless: true })
 const context = await browser.newContext({ viewport: { width: 390, height: 844 } })
@@ -19,7 +21,7 @@ try {
   const saved = ledger.demoLedger()
   await page.evaluate(data => localStorage.setItem('mhxy-ledger-v1',JSON.stringify(data)),saved)
   await page.getByText('备份',{exact:true}).click()
-  await page.getByText('当前版本 v0.8.0',{exact:true}).waitFor()
+  await page.getByText('当前版本 v'+manifest.versionName,{exact:true}).waitFor()
   await page.getByText('检查更新 ›',{exact:true}).click()
   await page.getByText('尚未发布可下载的更新',{exact:true}).waitFor()
   payload={type:'apk',platform:'android',appId:'__UNI__A9783A2',packageName:'uni.app.UNIA9783A2',versionName:'0.9.0',versionCode:900,url:'https://github.com/Hwayin/mhxy-jsq/releases/download/v0.9.0/mhxy-ledger-0.9.0.apk',size:50000000,sha256:'a'.repeat(64),notes:'改进快速录入\n优化装备类型选择'}
@@ -35,7 +37,7 @@ try {
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true)
     await page.screenshot({path:fileURLToPath(new URL('../docs/screenshots/update-'+width+'.png',import.meta.url)),fullPage:true})
   }
-  payload={...payload,versionCode:800}
+  payload={...payload,versionCode:Number(manifest.versionCode)}
   await page.getByText('检查更新',{exact:true}).click()
   await page.getByText('当前已是最新版本',{exact:true}).waitFor()
   assert.equal(await page.getByText('发现新版本',{exact:true}).count(),0)
