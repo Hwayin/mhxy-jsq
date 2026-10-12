@@ -8,9 +8,22 @@ const root = fileURLToPath(new URL('../', import.meta.url))
 const manifest = JSON.parse(await readFile(join(root, 'manifest.json'), 'utf8'))
 const release = JSON.parse(await readFile(join(root, 'release/android.json'), 'utf8'))
 if (!/^__UNI__[A-Z0-9]+$/i.test(manifest.appid)) throw new Error('请先在 HBuilderX 配置有效 AppID')
-if (!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){2,}$/.test(release.packageName)) throw new Error('Android 包名格式不正确')
+if (!/^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*){2,}$/.test(release.packageName)) throw new Error('Android 包名格式不正确')
 if (!/^[a-z0-9]+$/i.test(release.certificateAlias)) throw new Error('证书别名应为英文字母或数字')
 if (release.format !== 'apk') throw new Error('当前脚本仅配置 APK')
+// 用户已安装的 0.7.0 使用 DCloud 云端证书，覆盖更新须延续该证书；本机自有证书保留作备份。
+if (release.certificateType === 'cloud') {
+  const identity = JSON.parse(await readFile(join(root,'release/android-update-identity.json'),'utf8'))
+  if (identity.appId!==manifest.appid || identity.packageName!==release.packageName || identity.certificateType!=='cloud') throw new Error('已安装版身份配置不匹配')
+  await mkdir(join(root,'.local'),{recursive:true})
+  await writeFile(join(root,'.local/android-cloud-pack.json'),JSON.stringify({
+    project:root.replaceAll('\\','/').replace(/\/$/,''),platform:'android',iscustom:false,sourceMap:false,splashads:false,unimpads:false,
+    android:{packagename:release.packageName,androidpacktype:'3',channels:''}
+  },null,2)+'\n')
+  console.log('Android 云端证书配置通过：'+release.packageName+'，沿用已安装 0.7.0 的 AppID 与云端证书。')
+  console.log('本机自有证书及密码保持原文件；本次云打包不使用它们。')
+  process.exit(0)
+}
 const signing = join(root, '.local', 'signing')
 const keystore = join(signing, 'mhxy-ledger-release.keystore')
 const passwordFile = join(signing, 'password.txt')

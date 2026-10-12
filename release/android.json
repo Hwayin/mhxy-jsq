@@ -1,5 +1,6 @@
 {
-  "packageName": "com.mhxy.costledger",
+  "packageName": "uni.app.UNIA9783A2",
+  "certificateType": "cloud",
   "certificateAlias": "mhxyledger",
   "format": "apk",
   "minSdkVersion": 23,

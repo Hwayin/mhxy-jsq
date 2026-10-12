@@ -1,19 +1,19 @@
 # Android APK 打包配置
 
-本工程已准备 Android 正式 APK 的打包配置，尚未提交云打包或生成 APK。
+当前配置沿用手机实际安装的 0.7.0：包名 `uni.app.UNIA9783A2`、DCloud 云端证书。已从用户提供的原 APK 验证实际包名与证书指纹，记录于 `release/android-update-identity.json`。原先准备的本机自有证书保留作备份，覆盖更新使用原云端证书。
 
 | 项目 | 配置 |
 | --- | --- |
 | 应用名称 | 梦幻多开账本 |
 | DCloud AppID | `__UNI__A9783A2`（沿用当前工程） |
-| Android 包名 | `com.mhxy.costledger` |
-| 版本 | `0.5.0` / `500` |
+| Android 包名 | `uni.app.UNIA9783A2` |
+| 版本 | `0.8.0` / `800` |
 | 模式 | uni-app x 蒸汽模式，字节码 |
 | 最低版本 | Android 6.0，API 23 |
 | 目标版本 | Android 16，API 36 |
 | CPU | arm64-v8a、armeabi-v7a |
-| 安装包 | APK，正式包，自有证书 |
-| 签名别名 | `mhxyledger` |
+| 安装包 | APK，正式包，原云端证书 |
+| 签名类型 | `androidpacktype: 3`，DCloud 云端证书 |
 
 图标采用新设计的玉色账本与铜钱，已生成 72、96、144、192 px Android 图标，以及 512 / 1024 px 主图；原始图与旧版文件均保留，详见 [图标设计与生成提示词](app-icon-design.md)。名称、版本、图标、CPU 与系统兼容项配置在 `manifest.json` 中。包名及签名属于 HBuilderX 云打包配置，独立保存，不向 uni-app x manifest 写入无效的老 uni-app 字段。
 
@@ -44,7 +44,7 @@
 .\scripts\pack-android.ps1 -Submit
 ```
 
-`-Submit` 会调用 HBuilderX 官方 CLI，把项目编译资源和自有签名提交至 DCloud 云打包。不会开启广告、自定义调试基座或 SourceMap。CLI 要求已启动 HBuilderX 并登录；成功后返回下载信息，也可在 IDE「发行 → 查看云打包状态」查看结果。
+`-Submit` 会调用 HBuilderX 官方 CLI，将项目编译资源提交至 DCloud 云打包，沿用该 AppID 的云端证书。不会开启广告、自定义调试基座或 SourceMap。CLI 要求已启动 HBuilderX 并登录；成功后返回下载信息，也可在 IDE「发行 → 查看云打包状态」查看结果。加 `-Async -Json` 可在提交后返回任务 ticket，再用 `pack status --ticket` 查询。
 
 若安装目录不同，可以加 `-HBuilderXPath '你的 HBuilderX 安装目录'`。命令行调用的是已安装的 HBuilderX，不需要安装 Gradle 或 Android Studio。
 
@@ -54,17 +54,14 @@
 
 | 窗口字段 | 填写内容 |
 | --- | --- |
-| 包名 | `com.mhxy.costledger` |
-| 证书类型 | 自选证书 / 自有证书 |
-| 证书库文件 | `D:\Mycode\mhxy-jsq\.local\signing\mhxy-ledger-release.keystore` |
-| 证书别名 | `mhxyledger` |
-| 证书库密码、证书密码 | 均从 `.local/signing/password.txt` 复制 |
+| 包名 | `uni.app.UNIA9783A2` |
+| 证书类型 | 云端证书，沿用原 AppID |
 | 格式 | APK |
 | 自定义调试基座 | 不勾选 |
 
-核对信息后提交打包。官方云打包会上传签名用于构建；本次配置工作没有执行该提交动作。
+核对信息后提交打包。发布前用 `scripts/prepare-update-release.mjs` 检查 APK 的实际包名、版本和云端证书指纹，不能只相信打包窗口里的填写项。
 
-本机原生窗口控制工具连接失败，CLI 帮助命令也提示未连接到 HBuilderX，因此没有代填可视化窗口。工程与独立打包配置已完成，使用上述命令或窗口均可继续。
+本轮使用已连接并登录的 HBuilderX CLI 进行云构建。0.7.1 修复包从原 0.7.0 提交导出，位于忽略目录 `unpackage/bootstrap-0.7.1`；它仅修复更新身份识别，不提前加入 0.8.0 的快速录入功能。
 
 ## 本机检查结果
 

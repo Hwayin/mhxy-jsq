@@ -16,14 +16,15 @@ if (!value('--apk') || args.includes('--help')) {
 try {
   const apk=path.resolve(value('--apk'))
   const manifest=JSON.parse(await readFile(path.join(root,'manifest.json'),'utf8'))
-  const signing=JSON.parse(await readFile(path.join(root,'release/android-signing-public.json'),'utf8'))
+  const releaseProfile=JSON.parse(await readFile(path.join(root,'release/android.json'),'utf8'))
+  const signing=JSON.parse(await readFile(path.join(root,releaseProfile.certificateType==='cloud' ? 'release/android-update-identity.json' : 'release/android-signing-public.json'),'utf8'))
   if (!/^[0-9]+\.[0-9]+\.[0-9]+$/.test(manifest.versionName) || !Number.isInteger(Number(manifest.versionCode)) || Number(manifest.versionCode)<1 || Number(manifest.versionCode)>2147483647 || manifest.appid!==signing.appId) throw Error('项目版本或 AppID 配置无效')
   const size=(await stat(apk)).size
   if (size<4 || size>536870912) throw Error('APK 大小超出支持范围')
   const actual=apkManifest(await readFile(apk))
   if (actual.package!==signing.packageName || actual.versionName!==manifest.versionName || actual.versionCode!==Number(manifest.versionCode)) throw Error('APK 包名或版本与当前项目不一致，请重新云打包：'+JSON.stringify(actual))
   const hx=path.resolve(value('--hbuilder') ?? path.join(process.env.USERPROFILE,'Desktop','HBuilderX'))
-  const verified=execFileSync(path.join(hx,'plugins/amazon-corretto/bin/java.exe'),['-jar',path.join(hx,'plugins/app-safe-pack/apksigner.jar'),'verify','--print-certs',apk],{encoding:'utf8',maxBuffer:1048576})
+  const verified=execFileSync(path.join(hx,'plugins/amazon-corretto/bin/java.exe'),['-jar',path.join(hx,'plugins/app-safe-pack/apksigner.jar'),'verify','--print-certs',apk],{encoding:'utf8',maxBuffer:1048576,stdio:['ignore','pipe','pipe']})
   const certs=[...verified.matchAll(/Signer #\d+ certificate SHA-256 digest:\s*([a-fA-F0-9]+)/g)].map(m=>m[1].toLowerCase())
   if (certs.length!==1 || certs[0]!==signing.sha256.replaceAll(':','').toLowerCase()) throw Error('APK 签名与原安装版不一致，无法覆盖更新')
   const notes=value('--notes') ? (await readFile(path.resolve(value('--notes')),'utf8')).trim() : '新增应用内 APK 更新，优化装备选择与玉色账本体验。'

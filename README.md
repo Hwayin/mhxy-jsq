@@ -22,6 +22,7 @@
 - Android 在最后一页按系统返回键时确认退出，支持继续使用并防止重复弹窗。
 - Android APK 整包更新：启动检查与手动检查、更新说明、下载进度、取消重试、SHA-256 校验及系统安装确认；发布流程见 [在线更新说明](docs/apk-updates.md)。
 - 玉色账本界面：紧凑总览、队伍筛选、角色部位折叠、明细菜单、装备三步录入和独立草稿恢复。
+- 快速录入：直接点部位填金额，保存后连续录入下一件，保留等级和计价方式，支持补齐属性与独立草稿。见 [操作说明](docs/quick-entry.md)。
 - 445 个网易藏宝阁 PC 端官方物品图标离线显示，覆盖现有装备、灵饰和玉魄目录；通用记录使用占位图。
 - 角色测试 JSON：本机 Web 导出到固定文件，同角色 ID 直接覆盖；可从文件按角色 ID 恢复，保留其他角色。
 - 可选的虚构五开示例；首次运行是空账本，不自动混入示例数据。
@@ -79,13 +80,13 @@ npm test
 
 ## Android 安装包
 
-Android 正式 APK 配置已准备：包名 `com.mhxy.costledger`、自有签名 `mhxyledger`、四档 PNG 图标、Android 6.0+、32 / 64 位 ARM。证书及密码位于忽略的 `.local/signing/`，请备份并保持后续版本签名一致。
+Android 正式 APK 沿用已安装版的实际包名 `uni.app.UNIA9783A2` 和 DCloud 云端证书，四档 PNG 图标、Android 6.0+、32 / 64 位 ARM。原本机自有证书与密码仍保留在忽略的 `.local/signing/`；本轮覆盖更新使用经原 APK 核验的云端证书，身份记录见 `release/android-update-identity.json`。
 
 在项目目录执行 `.\scripts\pack-android.ps1` 只检查配置；登录 HBuilderX 后执行 `.\scripts\pack-android.ps1 -Submit` 才会把资源与签名提交 DCloud 云打包。也可在「发行 → App-Android/iOS-云打包」窗口手动填写。详细字段、文件路径与步骤见 [Android 打包说明](docs/android-packaging.md)。iOS 尚未配置 Apple 签名。
 
 当前交付是 App 源码与开发基础，安装包生成与真机验收状态见 [验证记录](docs/validation.md)。
 
-当前应用版本为 **0.7.0 / 700**。GitHub Release 的 APK 与 `update.json` 尚需本次云打包后上传；旧版首次需要手动覆盖安装一次，后续通过「备份 → 应用更新」升级。生成发布附件的命令和版本规则见 [APK 在线更新](docs/apk-updates.md)。
+当前应用版本为 **0.8.0 / 800**，新增快速录入。用户已安装的 0.7.0 实际身份与原更新配置不同，需要先手动覆盖安装 **0.7.1 修复包**，再通过「备份 → 应用更新」升级到 0.8.0。生成发布附件的命令和版本规则见 [APK 在线更新](docs/apk-updates.md)。
 
 ## 目录
 

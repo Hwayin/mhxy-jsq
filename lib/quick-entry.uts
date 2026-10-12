@@ -1,0 +1,45 @@
+import { CATEGORIES, SUBTYPES, EQUIPMENT_POSITIONS, assetSubtype, equipmentPosition, isEquipmentSet, equipmentName, toCents, putRecord } from './ledger.uts'
+import type { Asset, Ledger, AssetAttributes } from './ledger.uts'
+import { EQUIPMENT_ITEMS } from './item-catalog.uts'
+
+export type QuickForm = { category: string, subtype: string, position: string, level: string, amount: string, name: string, included: boolean, date: string, note: string, itemId: string }
+export function emptyQuickForm(category = 'equipment'): QuickForm {
+  return { category, subtype: category === 'equipment' ? 'gear' : category === 'pet' ? 'pet' : 'misc', position: '', level: '', amount: '', name: '', included: false, date: '', note: '', itemId: '' }
+}
+export function quickPositions(data: Ledger, roleId: string, subtype: string) {
+  const type = EQUIPMENT_POSITIONS.find(t => t.key === subtype)
+  return (type?.positions || []).map(position => ({ position, count: data.assets.filter(a => a.roleId === roleId && a.category === 'equipment' && assetSubtype(a) === subtype && !isEquipmentSet(a) && equipmentPosition(a) === position).length }))
+}
+export function nextQuickPosition(data: Ledger, roleId: string, subtype: string, current = ''): string {
+  const positions = quickPositions(data,roleId,subtype)
+  return positions.find(p => p.count === 0)?.position || (positions.some(p => p.position === current) ? current : positions[0]?.position || '')
+}
+export function buildQuickEntry(data: Ledger, roleId: string, form: QuickForm, id: string): { data: Ledger, asset: Asset } {
+  if (!data.roles.some(r => r.id === roleId)) throw new Error('角色已删除，请返回角色列表')
+  if (!CATEGORIES.some(c => c.key === form.category) || !SUBTYPES.some(s => s.category === form.category && s.key === form.subtype)) throw new Error('请选择有效的分类和类型')
+  // 空金额必须由用户填写；0 是明确记录零投入，不把未填默认为 0。
+  if (!form.amount.trim()) throw new Error('请填写本件金额，可明确填写 0')
+  let attributes: AssetAttributes | undefined
+  if (form.category === 'equipment') {
+    const positions = EQUIPMENT_POSITIONS.find(t => t.key === form.subtype)?.positions || []
+    if (!positions.includes(form.position)) throw new Error('请选择本件装备的具体部位')
+    attributes = form.subtype === 'jade' ? { jadeKind: form.position } : { slot: form.position }
+    if (form.subtype !== 'jade' && form.level.trim()) {
+      if (!/^\d{1,3}$/.test(form.level.trim()) || Number(form.level) > 160) throw new Error('装备等级应为 0～160 的整数，未确认可留空')
+      attributes.level = Number(form.level)
+    }
+    if (form.itemId) {
+      const item = EQUIPMENT_ITEMS.find(i => i.id === form.itemId)
+      if (!item || item.subtype !== form.subtype || item.slot !== form.position || (attributes.level != null && !item.levels.includes(attributes.level))) throw new Error('具体物品与类型、部位或等级不匹配，请重新选择')
+      attributes.itemId = item.id; attributes.itemName = item.name
+    }
+  }
+  // 类型化条件展开会被 5.26 补齐为 null 字段，覆盖 id/金额；分步赋值保持真实字段。
+  const asset: Asset = { id, roleId, category: form.category, subtype: form.subtype, name: form.name.trim(), costCents: toCents(form.amount), included: form.included, date: form.date.trim(), detail: '', note: form.note.trim(), purchaseKind: 'single' }
+  if (attributes != null) { asset.attributes = attributes; asset.nameGenerated = true }
+  if (form.category === 'equipment') asset.name = equipmentName(asset)
+  return { data: putRecord(data,'assets',asset), asset }
+}
+export function continueQuickForm(data: Ledger, roleId: string, saved: QuickForm): QuickForm {
+  return { ...emptyQuickForm(saved.category), subtype: saved.subtype, level: saved.subtype === 'jade' ? '' : saved.level, included: saved.included, date: saved.date, position: saved.category === 'equipment' ? nextQuickPosition(data,roleId,saved.subtype,saved.position) : '' }
+}

@@ -15,7 +15,7 @@ const { Sha256 } = await import(await moduleUrl('sha256'))
 const { parseApkRelease, newerRelease } = await import(await moduleUrl('update-model'))
 const { createUpdateController } = await import(await moduleUrl('update-controller'))
 const apk = Buffer.concat([Buffer.from([80,75,3,4]),randomBytes(150000)])
-const release = { type:'apk', platform:'android', appId:'__UNI__A9783A2', packageName:'com.mhxy.costledger', versionName:'0.8.0', versionCode:800, url:'https://github.com/Hwayin/mhxy-jsq/releases/download/v0.8.0/mhxy-ledger-0.8.0.apk', size:apk.length, sha256:createHash('sha256').update(apk).digest('hex'), notes:'更新说明' }
+const release = { type:'apk', platform:'android', appId:'__UNI__A9783A2', packageName:'uni.app.UNIA9783A2', versionName:'0.8.0', versionCode:800, url:'https://github.com/Hwayin/mhxy-jsq/releases/download/v0.8.0/mhxy-ledger-0.8.0.apk', size:apk.length, sha256:createHash('sha256').update(apk).digest('hex'), notes:'更新说明' }
 
 test('流式 SHA256 与标准实现一致，覆盖空输入、填充边界和跨块数据',()=>{
   for (const length of [0,1,55,56,63,64,65,127,128,129,1000000]) {

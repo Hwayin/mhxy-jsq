@@ -2,11 +2,51 @@
 
 项目使用 HBuilderX 云打包，GitHub Release 托管 APK 和更新描述。源码仓库 `Hwayin/mhxy-jsq` 已按要求公开；客户端不包含 GitHub 令牌。
 
+当前 0.8.0 / 800 新增快速录入。经用户提供的 APK 核验，已安装 0.7.0 的真实包名是 `uni.app.UNIA9783A2`、签名为 DCloud 云端证书，与原更新识别配置不一致。**这份 0.7.0 必须先手动覆盖安装 0.7.1 修复包，再在线升级到 0.8.0**；全程保持原包名与签名，账本留在原应用数据目录。
+
+## 本轮 0.7.0 → 0.8.0 演练
+
+电脑上先生成并云打包 0.7.1 修复包：
+
+```powershell
+.\scripts\prepare-update-bootstrap.ps1 -BaseRef 7e26eb5
+& "$env:USERPROFILE\Desktop\HBuilderX\cli.exe" project open --path "D:\Mycode\mhxy-jsq\unpackage\bootstrap-0.7.1"
+.\unpackage\bootstrap-0.7.1\scripts\pack-android.ps1 -Submit -Async -Json
+```
+
+修复包从已有 0.7.0 源码导出，只修改版本为 0.7.1 / 701、更新识别包名和打包配置，快速录入仍留在正式 0.8.0 中。下载后同样通过生成脚本核验证书，再提供给手机一次性手动覆盖安装。[已核验的 0.7.1 修复包](https://app.liuyingyong.cn/build/download/fd761ab0-c5ef-11f1-8ef7-5ff0e0edb706)，用户已确认覆盖安装保留原账本。
+
+随后云打包 0.8.0，验证 APK 并发布附件；手机保留 0.7.1，等 Release 发布后通过应用内升级。
+
+```powershell
+# 当前项目已经登录 HBuilderX。只检查配置不加 -Submit。
+.\scripts\pack-android.ps1 -Submit -Async -Json
+# 若打包预检仅报告包名尚未登记的已知提示，可加 -IgnoreWarnings。
+# 按提交结果中的 ticket 查询任务；也可在 HBuilderX「发行 → 查看云打包状态」查看。
+& "$env:USERPROFILE\Desktop\HBuilderX\cli.exe" pack status --project "D:\Mycode\mhxy-jsq" --ticket "提交返回的ticket" --json true
+
+# 下载云打包的 APK 后生成两项发布附件；会验证实际版本和原签名。
+node scripts/prepare-update-release.mjs --apk "下载的0.8.0.apk" --notes "release/notes-v0.8.0.md"
+
+# 使用本次源码的提交 SHA 作 target，确保 Release 标签对应构建源码。
+gh release create v0.8.0 "unpackage/update-release/v0.8.0/mhxy-ledger-0.8.0.apk" "unpackage/update-release/v0.8.0/update.json" --repo Hwayin/mhxy-jsq --target "本次源码提交SHA" --title "v0.8.0 快速录入" --notes-file "unpackage/update-release/v0.8.0/notes.md" --latest
+```
+
+手机端：
+
+1. 在原 0.7.0 的「备份」页导出一份账本备份，并记下角色数量和总投入；直接覆盖安装同包名、同签名的 0.7.1 修复包，不卸载。
+2. 在 0.7.1 点击「应用更新 → 检查更新」，应看到 **0.8.0** 和快速录入说明。
+3. 点击「下载更新」，等待下载与校验，再点击「安装新版」。如系统提示，允许本应用安装未知应用后返回重试。
+4. 在系统界面确认**覆盖安装**，随后重新打开 App；当前版本应为 0.8.0，原账本金额与角色保持。
+5. 打开角色，点击底部「快速录入」，点部位、填金额并「保存并继续」。确认金额清空且切到下一未记录部位。详情见 [快速录入](quick-entry.md)。
+
+下载、校验或安装失败时，可以重试；不要为了安装新版卸载旧 App。系统若提示签名不同，应先核对 0.7.0 实际使用的证书，不能换签名后覆盖。
+
 更新入口在「备份 → 应用更新」。正式 Android 安装版启动后检查一次；离线失败保持正常记账。数字 `versionCode` 比已安装版本大时显示更新。下载后按块校验文件大小、APK 文件头和 SHA-256，再调用 `uni.installApk` 打开系统安装界面。用户确认覆盖安装，系统继续检查包名、版本和签名。浏览器、HBuilder 调试基座只检查版本。
 
 ## 首次发布 0.7.0
 
-1. 用当前代码在 HBuilderX 云打包 Android **正式 APK**。保持 AppID `__UNI__A9783A2`、包名 `com.mhxy.costledger` 和原证书 `mhxyledger`。签名密码保留在本机，不提交仓库。
+1. 用对应版本代码在 HBuilderX 云打包 Android **正式 APK**。保持 AppID `__UNI__A9783A2`、实际包名 `uni.app.UNIA9783A2` 和同一云端证书。原本机自有证书保留作备份，不用于覆盖用户现有安装版。
 2. 运行以下命令；APK 必须是本次云打包的 0.7.0 / 700。脚本读取 APK 内实际包名和版本，调用 HBuilderX 自带 apksigner 验证签名，并计算校验摘要。
 
 ```powershell
@@ -35,7 +75,7 @@ gh release create v0.7.0 "unpackage/update-release/v0.7.0/mhxy-ledger-0.7.0.apk"
   "type": "apk",
   "platform": "android",
   "appId": "__UNI__A9783A2",
-  "packageName": "com.mhxy.costledger",
+  "packageName": "uni.app.UNIA9783A2",
   "versionName": "0.7.0",
   "versionCode": 700,
   "url": "https://github.com/Hwayin/mhxy-jsq/releases/download/v0.7.0/mhxy-ledger-0.7.0.apk",

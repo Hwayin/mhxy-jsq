@@ -1,0 +1,170 @@
+<template>
+  <view class="page page-with-dock">
+    <text class="eyebrow">{{ role?.name || '角色账本' }} · 连续录入</text>
+    <text class="title">快速记下每一件</text>
+    <text class="subtitle">先记部位和金额，具体物品、宝石与属性可稍后补齐。</text>
+    <text v-if="fatal" class="error">{{ fatal }}</text>
+    <template v-else>
+      <view class="chip-row"><text v-for="category in categories" :key="category.key" :class="['chip', form.category === category.key ? 'chip-active' : '']" @click="setCategory(category.key)">{{ category.label }}</text></view>
+      <view class="card">
+        <text class="label">{{ form.category === 'equipment' ? '装备类型' : '细分类型' }}</text>
+        <view class="chip-row quick-types"><text v-for="type in types" :key="type.key" :class="['chip', form.subtype === type.key ? 'chip-active' : '']" @click="setSubtype(type.key)">{{ type.label }}</text></view>
+        <template v-if="form.category === 'equipment'">
+          <text class="label quick-label">本件部位 *</text>
+          <view class="quick-slots"><view v-for="slot in slots" :key="slot.position" :class="['quick-slot', form.position === slot.position ? 'quick-slot-active' : '']" @click="setPosition(slot.position)"><text :class="['quick-slot-title', form.position === slot.position ? 'quick-slot-selected' : '']">{{ slot.position }}</text><text class="quick-slot-count">{{ slot.count ? '已有 ' + slot.count + ' 件' : '未记录' }}</text></view></view>
+          <text v-if="allRecorded" class="muted">本类型各部位已有记录，可继续补录其他配置。</text>
+          <view v-if="form.subtype !== 'jade'" class="field-group"><text class="label">装备等级（选填，下一件会保留）</text><input class="field quick-level" :value="form.level" @input="setLevel($event.detail.value)" @blur="setLevel($event.detail.value)" type="number" maxlength="3" placeholder="例如 100，未确认可留空" /></view>
+          <view class="row quick-item" @click="itemPicker = true"><ItemIcon :item-id="form.itemId" :item-name="itemName" :label="form.position" :small="true" /><view class="grow quick-item-copy"><text class="body">{{ itemName || '具体物品（可后补）' }}</text><text class="muted">{{ form.itemId ? '已选择官方物品图标' : '先按部位记录，稍后补齐配置' }}</text></view><text class="link">选择 ›</text></view>
+        </template>
+        <view v-else class="field-group"><text class="label">{{ form.category === 'pet' ? '召唤兽 / 装备名称' : '投入名称' }} *</text><input class="field quick-name" :value="form.name" @input="form.name = $event.detail.value" @blur="form.name = $event.detail.value" maxlength="200" placeholder="例如 画魂、点修费用" /></view>
+        <view class="field-group"><text class="label">{{ form.included ? '本件参考价（元，不重复计入）' : '本件实际投入（元）' }} *</text><input class="field quick-amount" :value="form.amount" @input="form.amount = $event.detail.value" @blur="form.amount = $event.detail.value" type="digit" maxlength="16" confirm-type="next" @confirm="saveNext()" placeholder="请输入本件金额，可填 0" /></view>
+        <view v-if="canInclude" class="field-group"><view class="between"><text class="body">购号价已包含此资产</text><switch :checked="form.included" @change="form.included = $event.detail.value" color="#287565" /></view></view>
+        <text class="link quick-more" @click="more = !more">{{ more ? '收起日期和备注 ↑' : '购入日期和备注（选填） ↓' }}</text>
+        <view v-if="more"><view class="field-group"><text class="label">购入日期（下一件会保留）</text><input class="field quick-date" :value="form.date" @input="form.date = $event.detail.value" @blur="form.date = $event.detail.value" maxlength="10" placeholder="YYYY-MM-DD" /></view><view class="field-group"><text class="label">本件备注</text><textarea class="textarea quick-note" :value="form.note" @input="form.note = $event.detail.value" @blur="form.note = $event.detail.value" maxlength="2000" placeholder="仅属于本件，保存后清空" /></view></view>
+      </view>
+      <view v-if="lastSaved != null" class="card quick-saved"><text class="section-title">本次已录入 {{ savedCount }} 笔</text><text class="body quick-label">最近：{{ lastSaved?.name }} · {{ money(lastSaved?.costCents ?? 0) }}</text><text class="muted">已保存到账本，下一件金额已清空。</text><text class="link" @click="editLast">补齐上一件属性 / 编辑 ›</text></view>
+      <text v-if="error" class="error">{{ error }}</text>
+      <text class="muted quick-caption">保存后优先选择尚未记录的部位；等级、计价方式和日期会保留，金额、名称、具体物品及备注会清空。</text>
+      <view class="action-dock quick-dock" :style="{ paddingBottom: dockPadding }"><text class="link quick-finish" @click="finish">完成</text><button class="primary dock-button quick-submit" :disabled="saving" @click="saveNext()">{{ saving ? '保存中…' : '保存并继续' }}</button></view>
+    </template>
+    <AttributePicker v-if="itemPicker" title="具体物品（可后补）" :options="itemOptions" :values="form.itemId ? [form.itemId] : []" :multiple="false" :allow-custom="false" :show-item-icons="true" @close="itemPicker = false" @confirm="chooseItem" />
+  </view>
+</template>
+<script setup>
+import { CATEGORIES, SUBTYPES, emptyLedger, money, errorMessage } from '../../lib/ledger.uts'
+import type { Asset } from '../../lib/ledger.uts'
+import { loadLedger, saveLedger } from '../../lib/storage.uts'
+import { makeId } from '../../lib/ledger.uts'
+import { EQUIPMENT_ITEMS } from '../../lib/item-catalog.uts'
+import { emptyQuickForm, quickPositions, nextQuickPosition, buildQuickEntry, continueQuickForm } from '../../lib/quick-entry.uts'
+import { safeBottomPadding } from '../../lib/ui-layout.uts'
+import ItemIcon from '../../components/item-icon.uvue'
+import AttributePicker from '../../components/attribute-picker.uvue'
+const dockPadding = ref(safeBottomPadding())
+onResize(() => { dockPadding.value = safeBottomPadding() })
+const id = ref('')
+const data = ref(emptyLedger())
+const form = reactive(emptyQuickForm())
+const role = computed(() => data.value.roles.find(r => r.id === id.value))
+const categories = CATEGORIES
+const types = computed(() => SUBTYPES.filter(s => s.category === form.category))
+const slots = computed(() => quickPositions(data.value,id.value,form.subtype))
+const allRecorded = computed(() => slots.value.length > 0 && slots.value.every(s => s.count > 0))
+const canInclude = computed(() => role.value?.purchaseMode === 'bundle' && form.category !== 'other')
+const itemName = computed(() => EQUIPMENT_ITEMS.find(i => i.id === form.itemId)?.name || '')
+const itemOptions = computed(() => EQUIPMENT_ITEMS.filter(i => i.subtype === form.subtype && i.slot === form.position && (!form.level || form.subtype === 'jade' || i.levels.includes(Number(form.level)))).map(i => ({ value:i.id, label:i.name, group:i.kind + (i.levels.length ? ' · ' + i.levels.join('/') + '级' : '') })))
+const fatal = ref(''), error = ref('')
+const more = ref(false), itemPicker = ref(false), saving = ref(false)
+const savedCount = ref(0), lastSaved = ref<Asset | null>(null)
+const draftKey = computed(() => 'mhxy-quick-draft-v1:' + id.value)
+const defaultsKey = computed(() => 'mhxy-quick-defaults-v1:' + id.value)
+let initial = '', leaving = false, leaveDialog = false
+function snapshot() { return JSON.stringify(form) }
+function setCategory(category: string) {
+  if (category === form.category) return
+  const defaults = emptyQuickForm(category)
+  Object.assign(form,{ category, subtype:defaults.subtype, position: category === 'equipment' ? nextQuickPosition(data.value,id.value,defaults.subtype) : '', included:false, itemId:'' })
+  error.value = ''
+}
+function setSubtype(subtype: string) {
+  if (subtype === form.subtype) return
+  form.subtype = subtype; form.itemId = ''
+  form.position = form.category === 'equipment' ? nextQuickPosition(data.value,id.value,subtype) : ''
+  if (subtype === 'jade') form.level = ''
+  error.value = ''
+}
+function setPosition(position: string) { if (form.position !== position) { form.position = position; form.itemId = '' } }
+function setLevel(level: string) { if (form.level !== level) { form.level = level; form.itemId = '' } }
+function chooseItem(values: string[]) {
+  const item = EQUIPMENT_ITEMS.find(i => i.id === values[0])
+  form.itemId = item?.id || ''
+  if (item != null && !form.level && item.levels.length === 1) form.level = String(item.levels[0])
+  itemPicker.value = false
+}
+function load() {
+  data.value = loadLedger()
+  if (!role.value) throw new Error('角色不存在或已删除')
+}
+onLoad(options => {
+  try {
+    id.value = options.parent || ''; load()
+    const category = CATEGORIES.some(c => c.key === options.category) ? String(options.category) : 'equipment'
+    Object.assign(form,emptyQuickForm(category))
+    const raw = uni.getStorageSync(defaultsKey.value)
+    if (typeof raw === 'string' && raw) {
+      try {
+        const prefs = JSON.parse(raw)
+        if (prefs != null && prefs.category === category && types.value.some(t => t.key === prefs.subtype)) { form.subtype = prefs.subtype; form.level = typeof prefs.level === 'string' ? prefs.level : ''; form.included = canInclude.value && prefs.included === true }
+      } catch {}
+    }
+    if (types.value.some(t => t.key === options.subtype)) form.subtype = String(options.subtype)
+    form.position = form.category === 'equipment' ? nextQuickPosition(data.value,id.value,form.subtype) : ''
+    initial = snapshot()
+    const draft = uni.getStorageSync(draftKey.value)
+    if (typeof draft === 'string' && draft) uni.showModal({title:'恢复快速录入草稿？',content:'上次尚未保存的金额和配置已保留，是否继续？',confirmText:'恢复草稿',cancelText:'重新录入',success:res=>{
+      if (!res.confirm) { uni.removeStorageSync(draftKey.value); return }
+      try {
+        const saved = JSON.parse(draft)
+        if (!saved || !CATEGORIES.some(c => c.key === saved.category) || !SUBTYPES.some(t => t.category === saved.category && t.key === saved.subtype) || ['position','level','amount','name','date','note','itemId'].some(k => typeof saved[k] !== 'string') || typeof saved.included !== 'boolean') throw new Error('草稿格式无效')
+        Object.assign(form,{category:saved.category,subtype:saved.subtype,position:saved.position,level:saved.level,amount:saved.amount,name:saved.name,included:saved.included,date:saved.date,note:saved.note,itemId:saved.itemId})
+      } catch(e) { error.value = '无法恢复草稿：' + errorMessage(e) }
+    }})
+  } catch(e) { fatal.value = errorMessage(e) }
+})
+onPageShow(() => { if (!id.value) return; try { load() } catch(e) { fatal.value = errorMessage(e) } })
+function saveNext() {
+  if (saving.value || fatal.value) return
+  saving.value = true; error.value = ''
+  try {
+    // 每笔提交重新读取，保留其他页面已保存的记录。
+    const entry = buildQuickEntry(loadLedger(),id.value,form,makeId())
+    data.value = saveLedger(entry.data)
+    lastSaved.value = entry.asset; savedCount.value++
+    Object.assign(form,continueQuickForm(data.value,id.value,form)); initial = snapshot()
+    try {
+      uni.removeStorageSync(draftKey.value)
+      uni.setStorageSync(defaultsKey.value,JSON.stringify({category:form.category,subtype:form.subtype,level:form.level,included:form.included}))
+    } catch { error.value = '记录已保存，常用设置或草稿清理失败。请核对最近保存的记录。' }
+    uni.showToast({title:'已保存，继续下一件',icon:'none'})
+    uni.pageScrollTo({scrollTop:0,duration:0})
+  } catch(e) { error.value = errorMessage(e) }
+  finally { saving.value = false }
+}
+function editLast() {
+  if (lastSaved.value == null) return
+  uni.navigateTo({url:'/pages/editor/index?kind=assets&id='+encodeURIComponent(lastSaved.value.id)})
+}
+// 草稿确认会正常拦截第一次返回，显式处理回调避免浏览器产生未处理拒绝。
+function finish() { uni.navigateBack({ fail: () => {} }) }
+onBackPress(() => {
+  if (leaving) return false
+  if (itemPicker.value) { itemPicker.value = false; return true }
+  if (!initial || snapshot() === initial || fatal.value) return false
+  if (leaveDialog) return true
+  leaveDialog = true
+  uni.showActionSheet({itemList:['保留草稿并返回','放弃本件并返回','继续录入'],success:res=>{
+    try {
+      if (res.tapIndex === 0) { uni.setStorageSync(draftKey.value,snapshot()); leaving = true; uni.navigateBack() }
+      if (res.tapIndex === 1) { uni.removeStorageSync(draftKey.value); leaving = true; uni.navigateBack() }
+    } catch(e) { error.value = '草稿操作失败：' + errorMessage(e) }
+  },complete:()=>{leaveDialog=false}})
+  return true
+})
+</script>
+<style>
+.quick-types { margin-top: 0; }
+.quick-label { margin-top: 24rpx; }
+.quick-slots { flex-direction: row; flex-wrap: wrap; margin-top: 4rpx; }
+.quick-slot { width: 30%; margin-right: 3%; margin-bottom: 14rpx; padding: 18rpx 4rpx; border-radius: 16rpx; background-color: #f0f1e9; align-items: center; }
+.quick-slot-active { background-color: #e7f0ea; border-width: 1rpx; border-color: #287565; }
+.quick-slot-title { color: #203a33; font-size: 28rpx; }
+.quick-slot-selected { color: #287565; font-weight: bold; }
+.quick-slot-count { color: #6d7e74; font-size: 20rpx; margin-top: 8rpx; }
+.quick-item { margin-top: 24rpx; }
+.quick-item-copy { margin-left: 14rpx; }
+.quick-more { margin-top: 12rpx; }
+.quick-caption { margin-top: 24rpx; }
+.quick-dock { flex-direction: row; align-items: center; }
+.quick-finish { margin-right: 24rpx; }
+.quick-submit { flex: 1; }
+</style>

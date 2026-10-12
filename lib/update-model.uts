@@ -1,6 +1,6 @@
 export const UPDATE_URL = 'https://github.com/Hwayin/mhxy-jsq/releases/latest/download/update.json'
 export const UPDATE_APP_ID = '__UNI__A9783A2'
-export const UPDATE_PACKAGE = 'com.mhxy.costledger'
+export const UPDATE_PACKAGE = 'uni.app.UNIA9783A2'
 export type ApkRelease = { type: string, platform: string, appId: string, packageName: string, versionName: string, versionCode: number, url: string, size: number, sha256: string, notes: string }
 
 // 只接受本仓库 HTTPS Release 附件，不把远端配置当作任意下载/跳转指令。

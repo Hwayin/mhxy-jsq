@@ -1,0 +1,10 @@
+{
+  "appId": "__UNI__A9783A2",
+  "packageName": "uni.app.UNIA9783A2",
+  "certificateType": "cloud",
+  "sha256": "4fc2c27f1ddaa20495a3b6ac4f9059c4fa9d7550044fa37f48ffbf665ac11ce7",
+  "sha1": "c02c2ee08a9bac61c7f982a512ea0ca5111db82f",
+  "baselineVersionName": "0.7.0",
+  "baselineVersionCode": 700,
+  "baselineApkUrl": "https://app.liuyingyong.cn/build/download/236deb50-c5ea-11f1-bcf4-95c885df9f9a"
+}

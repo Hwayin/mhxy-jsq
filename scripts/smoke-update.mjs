@@ -19,14 +19,14 @@ try {
   const saved = ledger.demoLedger()
   await page.evaluate(data => localStorage.setItem('mhxy-ledger-v1',JSON.stringify(data)),saved)
   await page.getByText('备份',{exact:true}).click()
-  await page.getByText('当前版本 v0.7.0',{exact:true}).waitFor()
+  await page.getByText('当前版本 v0.8.0',{exact:true}).waitFor()
   await page.getByText('检查更新 ›',{exact:true}).click()
   await page.getByText('尚未发布可下载的更新',{exact:true}).waitFor()
-  payload={type:'apk',platform:'android',appId:'__UNI__A9783A2',packageName:'com.mhxy.costledger',versionName:'0.8.0',versionCode:800,url:'https://github.com/Hwayin/mhxy-jsq/releases/download/v0.8.0/mhxy-ledger-0.8.0.apk',size:50000000,sha256:'a'.repeat(64),notes:'改进快速录入\n优化装备类型选择'}
+  payload={type:'apk',platform:'android',appId:'__UNI__A9783A2',packageName:'uni.app.UNIA9783A2',versionName:'0.9.0',versionCode:900,url:'https://github.com/Hwayin/mhxy-jsq/releases/download/v0.9.0/mhxy-ledger-0.9.0.apk',size:50000000,sha256:'a'.repeat(64),notes:'改进快速录入\n优化装备类型选择'}
   status=200
   await page.getByText('检查更新',{exact:true}).click()
   await page.getByText('发现新版本',{exact:true}).waitFor()
-  await page.getByText('v0.8.0',{exact:true}).waitFor()
+  await page.getByText('v0.9.0',{exact:true}).waitFor()
   assert.match(await page.locator('.update-notes').innerText(),/改进快速录入/)
   assert.equal(await page.getByText('下载更新',{exact:true}).count(),0)
   await mkdir(new URL('../docs/screenshots/',import.meta.url),{recursive:true})
@@ -35,11 +35,11 @@ try {
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true)
     await page.screenshot({path:fileURLToPath(new URL('../docs/screenshots/update-'+width+'.png',import.meta.url)),fullPage:true})
   }
-  payload={...payload,versionCode:700}
+  payload={...payload,versionCode:800}
   await page.getByText('检查更新',{exact:true}).click()
   await page.getByText('当前已是最新版本',{exact:true}).waitFor()
   assert.equal(await page.getByText('发现新版本',{exact:true}).count(),0)
-  payload={...payload,versionCode:800,sha256:'bad'}
+  payload={...payload,versionCode:900,sha256:'bad'}
   await page.getByText('检查更新',{exact:true}).click()
   await page.getByText('更新校验信息无效',{exact:true}).waitFor()
   assert.equal(await page.getByText('发现新版本',{exact:true}).count(),0)

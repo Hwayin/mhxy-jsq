@@ -28,7 +28,7 @@
         <view v-else class="card-summary"><text v-if="asset.contents" class="body">{{ asset.contents }}</text><text v-if="attributeText(asset)" class="muted">{{ attributeText(asset) }}</text><text v-if="asset.detail" class="body">{{ asset.detail }}</text><text v-if="asset.date" class="muted">{{ asset.date }}</text></view>
         <view class="asset-actions"><text v-if="asset.category === 'equipment'" class="compare-action" @click.stop="toggleComparison(asset)">{{ compareIds.includes(asset.id) ? '移出对比' : '加入对比' }}</text><text class="link detail-action" @click.stop="viewAsset(asset.id)">详情 ›</text><text class="asset-more" @click.stop="assetMenu(asset)">•••</text></view>
       </view>
-      <view class="action-dock" :style="{ paddingBottom: dockPadding }"><button class="primary dock-button" @click="addAsset">＋ 记一笔</button></view>
+      <view class="action-dock role-dock" :style="{ paddingBottom: dockPadding }"><button class="secondary rapid-button" @click="addQuick">快速录入</button><button class="primary dock-button detailed-button" @click="addAsset">＋ 记一笔</button></view>
     </view>
     <view v-else-if="!error" class="card empty"><text class="body">角色不存在或已删除</text></view>
   </view>
@@ -115,6 +115,7 @@ async function exportTestJson() {
   finally { exporting.value = false }
 }
 function addAsset() { uni.navigateTo({ url: '/pages/editor/index?kind=assets&parent=' + encodeURIComponent(id.value) + '&category=' + selected.value + (subtype.value && subtype.value !== 'unspecified' ? '&subtype=' + subtype.value : '') }) }
+function addQuick() { uni.navigateTo({ url: '/pages/quick/index?parent=' + encodeURIComponent(id.value) + '&category=' + selected.value + (subtype.value && subtype.value !== 'unspecified' ? '&subtype=' + subtype.value : '') }) }
 function editAsset(assetId: string) { uni.navigateTo({ url: '/pages/editor/index?kind=assets&id=' + encodeURIComponent(assetId) }) }
 function viewAsset(assetId: string) { uni.navigateTo({ url: '/pages/asset/index?id=' + encodeURIComponent(assetId) }) }
 function removeAsset(asset: Asset) { confirmDelete('assets', asset.id, '删除「' + asset.name + '」？') }
@@ -181,4 +182,7 @@ function confirmDelete(kind: string, recordId: string, content: string) {
 .detail-action { flex: 1; text-align: right; padding-right: 24rpx; }
 .asset-more { color: #6d7e74; font-size: 26rpx; padding: 20rpx 8rpx; }
 .list-caption { margin-bottom: 4rpx; }
+.role-dock { flex-direction: row; align-items: center; }
+.rapid-button { margin-top: 0; margin-right: 16rpx; flex: 1; }
+.detailed-button { flex: 1; width: 0; }
 </style>
