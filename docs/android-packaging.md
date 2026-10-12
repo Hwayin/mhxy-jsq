@@ -22,11 +22,11 @@
 - `.local/signing/mhxy-ledger-release.keystore`：RSA 2048 / SHA256withRSA，JKS 私钥证书。
 - `.local/signing/password.txt`：随机生成的证书库密码，也是私钥密码。
 - `.local/android-signing.json`：本机证书路径、密码文件位置等信息。
-- `.local/android-cloud-pack.json`：包含签名密码、可供 HBuilderX CLI 直接使用的完整配置。
+- `.local/android-cloud-pack.json`：当前沿用云端证书的 CLI 配置（`androidpacktype: 3`），不包含本机证书密码。
 - `release/android.json`：可公开的包名、别名、平台参数。
 - `release/android-signing-public.json`：公开证书指纹、有效期等信息，不包含私钥或密码。
 
-`.local/` 已加入忽略规则，密码未写入 `manifest.json`。请备份证书及密码，后续覆盖安装和升级继续使用同一包名与证书；准备脚本遇到已有证书不会重新生成。
+`.local/` 已加入忽略规则，密码未写入 `manifest.json`。上述本机自有证书、密码及 `android-signing.json` 是保留的历史备份；当前云端证书模式不会读取或上传它们。后续覆盖安装和升级继续使用经旧 APK 核验的同一包名与云端证书。
 
 ## 一键检查与提交
 
@@ -65,7 +65,7 @@
 
 ## 本机检查结果
 
-签名别名、证书库密码及私钥密码验证通过，证书尚未过期；四个 PNG 路径、格式及尺寸检查通过，公开配置中无签名密码。Android 蒸汽模式前端编译通过。云端原生构建、APK 安装与真机操作尚待执行；前端编译产物不是 APK。
+70 项测试及 Web/Android 前端编译通过；本轮 0.7.1 与 0.8.0 云端 APK 都已生成，下载后核验实际包名、版本和原云端证书指纹。用户确认 0.7.1 手动覆盖安装保留账本；0.8.0 已发布为 GitHub Latest，匿名完整下载验证通过。手机在线更新结果见 [验证记录](validation.md)。
 
 以后发布新版本时增加 `manifest.json` 的 `versionCode`，并同步 `versionName`。若移动工程目录，先运行检查命令更新本机证书绝对路径。
 

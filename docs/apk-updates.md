@@ -4,6 +4,8 @@
 
 当前 0.8.0 / 800 新增快速录入。经用户提供的 APK 核验，已安装 0.7.0 的真实包名是 `uni.app.UNIA9783A2`、签名为 DCloud 云端证书，与原更新识别配置不一致。**这份 0.7.0 必须先手动覆盖安装 0.7.1 修复包，再在线升级到 0.8.0**；全程保持原包名与签名，账本留在原应用数据目录。
 
+本轮 [v0.8.0 Release](https://github.com/Hwayin/mhxy-jsq/releases/tag/v0.8.0) 已正式发布为 Latest，包含 APK 与 `update.json` 两个附件。匿名下载地址已实际验证，APK 大小 **38,830,990 字节**，SHA-256 为 `8eabda23a22ff01d1d47f3546196271656ceca70f4e69b9b74b286065f2218e0`；Release 对应源码提交 `6464e93fe904eeafaf65d497f7bbbd69cf067a6b`。
+
 ## 本轮 0.7.0 → 0.8.0 演练
 
 电脑上先生成并云打包 0.7.1 修复包：
@@ -67,6 +69,8 @@ gh release create v0.7.0 "unpackage/update-release/v0.7.0/mhxy-ledger-0.7.0.apk"
 ## 后续每次更新
 
 同时递增 `manifest.json` 的 `versionName` 与 `versionCode`，同步 `package.json` 版本；例如 0.8.0 / 800。提交推送代码后重新云打包，运行生成脚本，再创建 `v0.8.0` Release 并上传对应两个附件。每个版本使用独立 APK 文件名，不替换已经发布过的安装包。只有正式发布 Latest 后手机才会看到新版；GitHub 源码 push 本身不会生成或发布 APK。
+
+0.8.0 已发布，下次例如使用 **0.9.0 / 900**、`v0.9.0` 与 `mhxy-ledger-0.9.0.apk`。流程仍是「改版本并测试/推送 → 云打包 → 生成两个附件 → GitHub Release 设 Latest」。0.7.1 修复只需安装一次，以后保留相同 AppID、实际包名及云端证书即可直接在 App 中升级。
 
 更新描述结构（实际大小和摘要由脚本生成）：
 

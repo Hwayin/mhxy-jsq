@@ -82,7 +82,7 @@ npm test
 
 Android 正式 APK 沿用已安装版的实际包名 `uni.app.UNIA9783A2` 和 DCloud 云端证书，四档 PNG 图标、Android 6.0+、32 / 64 位 ARM。原本机自有证书与密码仍保留在忽略的 `.local/signing/`；本轮覆盖更新使用经原 APK 核验的云端证书，身份记录见 `release/android-update-identity.json`。
 
-在项目目录执行 `.\scripts\pack-android.ps1` 只检查配置；登录 HBuilderX 后执行 `.\scripts\pack-android.ps1 -Submit` 才会把资源与签名提交 DCloud 云打包。也可在「发行 → App-Android/iOS-云打包」窗口手动填写。详细字段、文件路径与步骤见 [Android 打包说明](docs/android-packaging.md)。iOS 尚未配置 Apple 签名。
+在项目目录执行 `.\scripts\pack-android.ps1` 只检查配置；登录 HBuilderX 后执行 `.\scripts\pack-android.ps1 -Submit` 才会把资源提交 DCloud，并使用原云端证书构建。也可在「发行 → App-Android/iOS-云打包」窗口手动填写。详细字段、文件路径与步骤见 [Android 打包说明](docs/android-packaging.md)。iOS 尚未配置 Apple 签名。
 
 当前交付是 App 源码与开发基础，安装包生成与真机验收状态见 [验证记录](docs/validation.md)。
 
